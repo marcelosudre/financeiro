@@ -751,4 +751,4 @@ def deletar_categoria(id):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(host="192.168.1.10", debug=True, port=5000)
+    app.run(host="10.8.0.3", debug=True, port=5000)
