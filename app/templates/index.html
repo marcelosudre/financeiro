@@ -96,38 +96,100 @@
             display: block;
         }
 
+        /* ==================== BOTTOM NAV (MOBILE STYLE) ====================*/
+        .bottom-nav {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 70px;
+            background: #ffffff;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            display: none;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.08);
+            z-index: 1000;
+            padding: 8px 12px;
+            gap: 8px;
+        }
+
+        .bottom-nav .bottom-btn {
+            flex: 1;
+            height: 100%;
+            border: none;
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #6b7280;
+            font-weight: 600;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            min-height: 44px;
+        }
+
+        .bottom-nav .bottom-btn .icon {
+            font-size: 1.2rem;
+        }
+
+        .bottom-nav .bottom-btn.active {
+            background: linear-gradient(135deg, #001f3f 0%, #003d7a 100%);
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(0, 31, 63, 0.25);
+        }
+
         /* ==================== ABAS INTERNAS ====================*/
         .tabs-interno {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            background: #f4f8fb;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 8px;
+            margin-bottom: 16px;
+            background: #0d1f34;
             padding: 6px;
-            border-radius: 12px;
-            border: 1px solid #e2e9f1;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
         }
 
         .tab-btn-interno {
-            flex: 1;
-            padding: 12px 16px;
             border: none;
-            border-radius: 9px;
-            background: transparent;
-            color: #4a5568;
+            background: rgba(255, 255, 255, 0.04);
+            color: #cbd5f5;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 8px;
+            gap: 4px;
+            min-height: 58px;
+            font-size: 0.9em;
+        }
+
+        .tab-btn-interno span.icon {
+            font-size: 1.1rem;
+        }
+
+        .tab-btn-interno .label {
+            font-size: 0.82em;
         }
 
         .tab-btn-interno:hover {
-            background: rgba(0, 31, 63, 0.08);
-            color: #001f3f;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
         }
 
         .tab-btn-interno.active {
-            background: #001f3f;
+            background: linear-gradient(135deg, #001f3f 0%, #003d7a 100%);
             color: #fff;
-            box-shadow: 0 6px 18px rgba(0, 31, 63, 0.25);
+            box-shadow: 0 10px 22px rgba(0, 31, 63, 0.35);
         }
 
         .tab-content-interno {
@@ -137,6 +199,39 @@
 
         .tab-content-interno.active {
             display: block;
+        }
+
+        .financeiro-transacoes {
+            margin: 25px -30px -30px;
+            padding: 30px;
+            background: #f7f9fc;
+            border-radius: 32px 32px 0 0;
+            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .financeiro-transacoes h3 {
+            color: #001f3f;
+            margin-bottom: 6px;
+            font-size: 1.4em;
+        }
+
+        .transacoes-subtitulo {
+            color: #64748b;
+            font-size: 0.95em;
+            margin-bottom: 16px;
+        }
+
+        .transacoes-top {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .financeiro-transacoes .form-group {
+            margin-bottom: 0;
+            min-width: 200px;
         }
 
         .card {
@@ -1358,6 +1453,10 @@
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 20px 20px 110px;
+            }
+
             .metricas {
                 grid-template-columns: 1fr;
             }
@@ -1379,7 +1478,32 @@
             }
 
             .tabs {
-                flex-wrap: wrap;
+                display: none;
+            }
+
+            .bottom-nav {
+                display: flex;
+            }
+
+            .container {
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .tabs-interno {
+                grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+                padding: 8px;
+            }
+
+            .tab-btn-interno {
+                font-size: 0.85em;
+                gap: 3px;
+            }
+
+            .financeiro-transacoes {
+                margin: 10px -20px -20px;
+                padding: 24px 18px 110px;
             }
 
             .tab-btn {
@@ -1486,16 +1610,30 @@
 
     <div class="container">
         <header>
-            <h1>💰 Controle Financeiro Familiar</h1>
+            <h1></h1>
             <p>Gerencie suas contas, ganhos e lista de compras em um único lugar</p>
         </header>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="abrirAba(event, 'dashboard')">📈 Dashboard</button>
-            <button class="tab-btn" onclick="abrirAba(event, 'financeiro')">📊 Financeiro</button>
-            <button class="tab-btn" onclick="abrirAba(event, 'lista')">📝 Lista de Compras</button>
-            <button class="tab-btn" onclick="abrirAba(event, 'relatorio')">📑 Relatório</button>
+            <button class="tab-btn active" data-tab="dashboard" onclick="abrirAba(event, 'dashboard')">📈 Dashboard</button>
+            <button class="tab-btn" data-tab="financeiro" onclick="abrirAba(event, 'financeiro')">📊 Financeiro</button>
+            <button class="tab-btn" data-tab="lista" onclick="abrirAba(event, 'lista')">📝 Lista de Compras</button>
         </div>
+
+        <nav class="bottom-nav" aria-label="Menu principal">
+            <button class="bottom-btn active" data-tab="dashboard" onclick="abrirAba(event, 'dashboard')">
+                <span class="icon">🏠</span>
+                <span class="label">Home</span>
+            </button>
+            <button class="bottom-btn" data-tab="financeiro" onclick="abrirAba(event, 'financeiro')">
+                <span class="icon">💰</span>
+                <span class="label">Finanças</span>
+            </button>
+            <button class="bottom-btn" data-tab="lista" onclick="abrirAba(event, 'lista')">
+                <span class="icon">📋</span>
+                <span class="label">Listas</span>
+            </button>
+        </nav>
 
         <!-- ==================== ABA DASHBOARD ==================== -->
         <div id="dashboard" class="tab-content active">
@@ -1507,13 +1645,26 @@
         <!-- ==================== ABA FINANCEIRO ==================== -->
         <div id="financeiro" class="tab-content">
             <div class="tabs-interno">
-                <button class="tab-btn-interno active" onclick="abrirAbaInterna(event, 'adicionar-transacao')">➕ Adicionar</button>
-                <button class="tab-btn-interno" onclick="abrirAbaInterna(event, 'listar-transacoes')">📋 Transações</button>
-                <button class="tab-btn-interno" onclick="abrirAbaInterna(event, 'categorias-interno')">🏷️ Categorias</button>
+                <button class="tab-btn-interno active" onclick="abrirAbaInterna(event, 'adicionar-transacao')">
+                    <span class="icon">➕</span>
+                    <span class="label">Adicionar</span>
+                </button>
+                <button class="tab-btn-interno" onclick="abrirAbaInterna(event, 'listar-transacoes')">
+                    <span class="icon">📈</span>
+                    <span class="label">Transações</span>
+                </button>
+                <button class="tab-btn-interno" onclick="abrirAbaInterna(event, 'categorias-interno')">
+                    <span class="icon">🏷️</span>
+                    <span class="label">Categorias</span>
+                </button>
+                <button class="tab-btn-interno" onclick="abrirAbaInterna(event, 'relatorio-interno')">
+                    <span class="icon">📑</span>
+                    <span class="label">Relatórios</span>
+                </button>
             </div>
 
             <!-- ABA 1: ADICIONAR TRANSAÇÃO -->
-            <div id="adicionar-transacao" class="tab-content-interno active">
+            <div id="adicionar-transacao" class="tab-content-interno tab-pane-financeiro active">
                 <div class="card">
                     <h3>Adicionar Transação</h3>
                     <div id="msg-form"></div>
@@ -1571,52 +1722,55 @@
             </div>
 
             <!-- ABA 2: TRANSACOES -->
-            <div id="listar-transacoes" class="tab-content-interno">
-                <div class="card">
-                    <h3>Transações</h3>
-                    <div class="form-group" style="max-width: 260px;">
+            <div id="listar-transacoes" class="tab-content-interno tab-pane-financeiro financeiro-transacoes">
+                <div class="transacoes-top">
+                    <div>
+                        <h3>Transações</h3>
+                        <p class="transacoes-subtitulo">Acompanhe ganhos e despesas em tempo real</p>
+                    </div>
+                    <div class="form-group">
                         <label for="transacoes-mes">Filtrar mês</label>
                         <input type="month" id="transacoes-mes" onchange="carregarTransacoes()">
                     </div>
-                    <div class="transacoes-saldo-header">
-                        <div id="transacoes-saldo" class="kanban-totalizador saldo positivo">⚖️ Saldo do mês <strong>Carregando...</strong></div>
-                    </div>
+                </div>
+                <div class="transacoes-saldo-header">
+                    <div id="transacoes-saldo" class="kanban-totalizador saldo positivo">⚖️ Saldo do mês <strong>Carregando...</strong></div>
+                </div>
 
-                    <div class="tabs-transacoes">
-                        <button class="tab-btn-transacao active" onclick="abrirAbaTransacoes(event, 'tab-ganhos')">💰 Ganhos</button>
-                        <button class="tab-btn-transacao" onclick="abrirAbaTransacoes(event, 'tab-despesas')">💸 Despesas</button>
-                    </div>
+                <div class="tabs-transacoes">
+                    <button class="tab-btn-transacao active" onclick="abrirAbaTransacoes(event, 'tab-ganhos')">💰 Ganhos</button>
+                    <button class="tab-btn-transacao" onclick="abrirAbaTransacoes(event, 'tab-despesas')">💸 Despesas</button>
+                </div>
 
-                    <div id="tab-ganhos" class="tab-content-transacao active">
-                        <div class="transacoes-duas-colunas">
-                            <div class="transacoes-coluna">
-                                <h5>⏳ Pendentes</h5>
-                                <div id="ganhos-pendentes" class="kanban-container"></div>
-                            </div>
-                            <div class="transacoes-coluna">
-                                <h5>✅ Recebidos</h5>
-                                <div id="ganhos-pagos" class="kanban-container"></div>
-                            </div>
+                <div id="tab-ganhos" class="tab-content-transacao active">
+                    <div class="transacoes-duas-colunas">
+                        <div class="transacoes-coluna">
+                            <h5>⏳ Pendentes</h5>
+                            <div id="ganhos-pendentes" class="kanban-container"></div>
+                        </div>
+                        <div class="transacoes-coluna">
+                            <h5>✅ Recebidos</h5>
+                            <div id="ganhos-pagos" class="kanban-container"></div>
                         </div>
                     </div>
+                </div>
 
-                    <div id="tab-despesas" class="tab-content-transacao" hidden>
-                        <div class="transacoes-duas-colunas">
-                            <div class="transacoes-coluna">
-                                <h5>⏳ Pendentes</h5>
-                                <div id="despesas-pendentes" class="kanban-container"></div>
-                            </div>
-                            <div class="transacoes-coluna">
-                                <h5>✅ Pagas</h5>
-                                <div id="despesas-pagas" class="kanban-container"></div>
-                            </div>
+                <div id="tab-despesas" class="tab-content-transacao" hidden>
+                    <div class="transacoes-duas-colunas">
+                        <div class="transacoes-coluna">
+                            <h5>⏳ Pendentes</h5>
+                            <div id="despesas-pendentes" class="kanban-container"></div>
+                        </div>
+                        <div class="transacoes-coluna">
+                            <h5>✅ Pagas</h5>
+                            <div id="despesas-pagas" class="kanban-container"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- ABA 3: CATEGORIAS (movida para Financeiro) -->
-            <div id="categorias-interno" class="tab-content-interno">
+            <div id="categorias-interno" class="tab-content-interno tab-pane-financeiro">
                 <div class="card" style="margin-bottom: 20px;">
                     <h3>Cadastrar Nova Categoria</h3>
                     
@@ -1656,6 +1810,24 @@
                 <h3 style="margin-top: 30px;">Categorias de Ganho</h3>
                 <div id="categorias-ganho" class="categorias-grid"></div>
             </div>
+
+            <div id="relatorio-interno" class="tab-content-interno tab-pane-financeiro">
+                <div class="card">
+                    <h3>Relatório do Mês</h3>
+
+                    <div class="form-group">
+                        <label for="mes-filtro">Selecione o mês</label>
+                        <input type="month" id="mes-filtro" onchange="carregarMetricas()">
+                    </div>
+
+                    <div class="export-btn-group">
+                        <button class="btn-export" onclick="exportarPDF()">📥 Exportar PDF</button>
+                    </div>
+
+                    <div id="metricas-content"></div>
+                    <div id="relatorio-chart" style="margin-top:12px;"></div>
+                </div>
+            </div>
         </div>
 
         <!-- ==================== ABA LISTA DE COMPRAS ==================== -->
@@ -1672,25 +1844,6 @@
             </div>
 
             <div id="listas-container" class="lista-container"></div>
-        </div>
-
-        <!-- ==================== ABA RELATÓRIO ==================== -->
-        <div id="relatorio" class="tab-content">
-            <div class="card">
-                <h3>Relatório do Mês</h3>
-
-                <div class="form-group">
-                    <label for="mes-filtro">Selecione o mês</label>
-                    <input type="month" id="mes-filtro" onchange="carregarMetricas()">
-                </div>
-
-                <div class="export-btn-group">
-                    <button class="btn-export" onclick="exportarPDF()">📥 Exportar PDF</button>
-                </div>
-
-                <div id="metricas-content"></div>
-                <div id="relatorio-chart" style="margin-top:12px;"></div>
-            </div>
         </div>
 
         <!-- 'Categorias' top-level removed; categories UI moved into Financeiro -->
@@ -1844,6 +1997,7 @@
             carregarListas();
             carregarCategorias();
             atualizarCombosCategorias();
+            syncBottomNav('dashboard');
         });
 
         // ==================== ABAS ====================
@@ -1851,34 +2005,52 @@
             const abas = document.querySelectorAll('.tab-content');
             abas.forEach(aba => aba.classList.remove('active'));
 
+            const alvo = document.getElementById(abaId);
+            if (alvo) {
+                alvo.classList.add('active');
+            }
+
             const botoes = document.querySelectorAll('.tab-btn');
-            botoes.forEach(btn => btn.classList.remove('active'));
+            botoes.forEach(btn => {
+                const mesmoAlvo = btn.dataset.tab === abaId;
+                btn.classList.toggle('active', mesmoAlvo);
+            });
 
-            document.getElementById(abaId).classList.add('active');
-            event.target.classList.add('active');
+            syncBottomNav(abaId);
 
-                if (abaId === 'lista') {
-                    carregarListas();
-                } else if (abaId === 'dashboard') {
-                    carregarDashboard();
-                } else if (abaId === 'financeiro') {
-                    // quando abrir financeiro, carregar categorias (movidas para a aba interna de financeiro)
-                    carregarCategorias();
-                } else if (abaId === 'relatorio') {
-                    carregarMetricas();
-                }
+            if (abaId === 'lista') {
+                carregarListas();
+            } else if (abaId === 'dashboard') {
+                carregarDashboard();
+            } else if (abaId === 'financeiro') {
+                carregarCategorias();
+            }
+        }
+
+        function syncBottomNav(abaId) {
+            const navBotoes = document.querySelectorAll('.bottom-nav .bottom-btn');
+            navBotoes.forEach(btn => {
+                const ativo = btn.dataset.tab === abaId;
+                btn.classList.toggle('active', ativo);
+            });
         }
 
         // ==================== ABAS INTERNAS ====================
         function abrirAbaInterna(event, abaId) {
-            const tabs = document.querySelectorAll('.tab-content-interno');
-            tabs.forEach(tab => tab.classList.remove('active'));
-
             const botoes = document.querySelectorAll('.tab-btn-interno');
             botoes.forEach(btn => btn.classList.remove('active'));
+            const alvoBotao = event && (event.currentTarget || event.target);
+            if (alvoBotao) {
+                alvoBotao.classList.add('active');
+            }
 
-            document.getElementById(abaId).classList.add('active');
-            event.target.classList.add('active');
+            const paineis = document.querySelectorAll('.tab-pane-financeiro');
+            paineis.forEach(tab => tab.classList.remove('active'));
+
+            const targetPane = document.getElementById(abaId);
+            if (targetPane) {
+                targetPane.classList.add('active');
+            }
 
             if (abaId === 'resumo-mes') {
                 carregarMetricas();
@@ -1886,6 +2058,8 @@
                 carregarTransacoes();
             } else if (abaId === 'categorias-interno') {
                 carregarCategorias();
+            } else if (abaId === 'relatorio-interno') {
+                carregarMetricas();
             }
         }
 
