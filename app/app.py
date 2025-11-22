@@ -49,6 +49,13 @@ class Transacao(db.Model):
     mes_referencia = db.Column(db.Date)  # Primeiro dia do mês
     criado_em = db.Column(db.DateTime, default=datetime.now)
     observacao = db.Column(db.Text)
+    # Recorrência / parcelamento
+    recorrente = db.Column(db.Boolean, default=False)
+    dia_recorrente = db.Column(db.Integer)
+    parcelado = db.Column(db.Boolean, default=False)
+    parcelas_total = db.Column(db.Integer)
+    parcela_num = db.Column(db.Integer)
+    origem_id = db.Column(db.Integer)
     
     def to_dict(self):
         return {
@@ -63,6 +70,12 @@ class Transacao(db.Model):
             'tipo_conta': self.tipo_conta,
             'mes_referencia': self.mes_referencia.strftime('%Y-%m') if self.mes_referencia else None,
             'observacao': self.observacao,
+            'recorrente': bool(self.recorrente),
+            'dia_recorrente': self.dia_recorrente,
+            'parcelado': bool(self.parcelado),
+            'parcelas_total': self.parcelas_total,
+            'parcela_num': self.parcela_num,
+            'origem_id': self.origem_id,
         }
 
 class ListaCompras(db.Model):
@@ -123,6 +136,29 @@ def ensure_observacao_column():
                 conn.execute(text('ALTER TABLE transacoes ADD COLUMN observacao TEXT'))
 
 
+def ensure_recorrencia_columns():
+    """Adiciona colunas de recorrência/parcelamento se não existirem."""
+    with app.app_context():
+        inspector = inspect(db.engine)
+        colunas = [col['name'] for col in inspector.get_columns('transacoes')]
+        with db.engine.begin() as conn:
+            if 'recorrente' not in colunas:
+                conn.execute(text("ALTER TABLE transacoes ADD COLUMN recorrente BOOLEAN DEFAULT 0"))
+            if 'dia_recorrente' not in colunas:
+                conn.execute(text("ALTER TABLE transacoes ADD COLUMN dia_recorrente INTEGER"))
+            if 'parcelado' not in colunas:
+                conn.execute(text("ALTER TABLE transacoes ADD COLUMN parcelado BOOLEAN DEFAULT 0"))
+            if 'parcelas_total' not in colunas:
+                conn.execute(text("ALTER TABLE transacoes ADD COLUMN parcelas_total INTEGER"))
+            if 'parcela_num' not in colunas:
+                conn.execute(text("ALTER TABLE transacoes ADD COLUMN parcela_num INTEGER"))
+            if 'origem_id' not in colunas:
+                conn.execute(text("ALTER TABLE transacoes ADD COLUMN origem_id INTEGER"))
+
+
+ensure_recorrencia_columns()
+
+
 ensure_observacao_column()
 
 # ==================== ROTAS - TRANSAÇÕES ====================
@@ -176,6 +212,102 @@ def criar_transacao():
         # Calcula o primeiro dia do mês para referência
         mes_ref = vencimento.replace(day=1)
         
+        # Helper para somar meses respeitando dias finais do mês
+        def add_months(orig_date, months):
+            year = orig_date.year + (orig_date.month - 1 + months) // 12
+            month = ((orig_date.month - 1 + months) % 12) + 1
+            day = orig_date.day
+            # Ajusta dia se exceder dias do mês
+            from calendar import monthrange
+            last_day = monthrange(year, month)[1]
+            if day > last_day:
+                day = last_day
+            return datetime(year, month, day).date()
+
+        created = []
+
+        # Parcelado: cria várias transações (parcelas)
+        if data.get('parcelado'):
+            parcelas = int(data.get('parcelas_total', 1))
+            first_trans = None
+            for i in range(1, parcelas + 1):
+                venc_i = add_months(vencimento, i - 1)
+                # Para parcelamento, vencimento fixo no dia 20 de cada mês (ou último dia se o mês tiver menos dias)
+                from calendar import monthrange
+                last_day = monthrange(venc_i.year, venc_i.month)[1]
+                day20 = 20 if 20 <= last_day else last_day
+                venc_i = venc_i.replace(day=day20)
+                mes_ref_i = venc_i.replace(day=1)
+                t = Transacao(
+                    descricao=data['descricao'],
+                    valor=float(data['valor']) / parcelas if data.get('valor') else 0.0,
+                    vencimento=venc_i,
+                    tipo=data['tipo'],
+                    categoria=data.get('categoria', ''),
+                    mes_referencia=mes_ref_i,
+                    pago=False,
+                    observacao=data.get('observacao'),
+                    parcelado=True,
+                    parcelas_total=parcelas,
+                    parcela_num=i
+                )
+                db.session.add(t)
+                db.session.commit()
+                if i == 1:
+                    first_trans = t
+                created.append(t)
+
+            # vincula origem_id para todas as parcelas ao id da primeira
+            if first_trans:
+                for t in created:
+                    if t.origem_id != first_trans.id:
+                        t.origem_id = first_trans.id
+                db.session.commit()
+
+            return jsonify([t.to_dict() for t in created]), 201
+
+        # Recorrente (fixa mensal): cria transações para os próximos meses usando o dia do vencimento informado
+        if data.get('recorrente'):
+            meses_a_frente = int(data.get('meses_a_frente', 12))
+            dia = vencimento.day
+            first_trans = None
+            for m in range(0, meses_a_frente):
+                venc_i = add_months(vencimento, m)
+                # ajustar para o dia original do vencimento, ou último dia se necessário
+                from calendar import monthrange
+                last_day = monthrange(venc_i.year, venc_i.month)[1]
+                day_use = dia if dia <= last_day else last_day
+                venc_i = venc_i.replace(day=day_use)
+
+                mes_ref_i = venc_i.replace(day=1)
+                t = Transacao(
+                    descricao=data['descricao'],
+                    valor=float(data['valor']),
+                    vencimento=venc_i,
+                    tipo=data['tipo'],
+                    categoria=data.get('categoria', ''),
+                    mes_referencia=mes_ref_i,
+                    pago=False,
+                    observacao=data.get('observacao'),
+                    tipo_conta='fixa',
+                    recorrente=True
+                )
+                db.session.add(t)
+                db.session.commit()
+                if m == 0:
+                    first_trans = t
+                created.append(t)
+
+            # marca origem_id apontando para o primeiro criado
+            if first_trans:
+                for t in created:
+                    if t.origem_id != first_trans.id:
+                        t.origem_id = first_trans.id
+                db.session.commit()
+
+            return jsonify([t.to_dict() for t in created]), 201
+
+        # Caso padrão: criação simples de uma transação única
         transacao = Transacao(
             descricao=data['descricao'],
             valor=float(data['valor']),
