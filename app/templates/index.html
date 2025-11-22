@@ -1886,11 +1886,11 @@
                 <div id="tab-cofres" class="tab-content-transacao" hidden>
                     <div class="transacoes-duas-colunas">
                         <div class="transacoes-coluna">
-                            <h5>🐷 Cofres com rendimento (PicPay/CDI)</h5>
+                            <h5>🐷 Cofres com rendimento CDI</h5>
                             <div id="cofres-rentaveis" class="kanban-container"></div>
                         </div>
                         <div class="transacoes-coluna">
-                            <h5>💤 Cofres sem rendimento</h5>
+                            <h5>🎯 Metas</h5>
                             <div id="cofres-simples" class="kanban-container"></div>
                         </div>
                     </div>
@@ -2227,6 +2227,41 @@
             if (event && event.currentTarget) {
                 event.currentTarget.classList.add('active');
             }
+            // Atualiza painel de saldo conforme aba ativa
+            atualizarSaldoTransacoesResumo();
+        }
+
+        function atualizarSaldoTransacoesResumo() {
+            const saldoElemento = document.getElementById('transacoes-saldo');
+            if (!saldoElemento) return;
+            const cofresAtivo = document.getElementById('tab-cofres') && document.getElementById('tab-cofres').classList.contains('active');
+                        const resumo = window._resumoCofres;
+            const saldoMes = window._saldoMes;
+            if (cofresAtivo && resumo) {
+                                saldoElemento.className = 'kanban-totalizador saldo positivo';
+                                const rentBase = (resumo.rentBase||0);
+                                const rentProj12Total = (resumo.rentProj12Total||0);
+                                const rentGanho12 = (resumo.rentGanho12||0);
+                                const metasBase = (resumo.metasBase||0);
+                                const metasProj12Total = (resumo.metasProj12Total||0);
+                                const rentMensalGanho = rentGanho12/12; // ganho projetado médio por mês
+                saldoElemento.innerHTML = '<div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">'
+                  + '<div style="flex:1 1 180px; min-width:160px; background:#001f3f; color:#fff; padding:10px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.25);">'
+                      + '<div style="font-weight:700;">🐷 CDI</div>'
+                      + '<div style="font-size:1.1em; font-weight:700; margin-top:4px;">R$ ' + rentBase.toFixed(2) + '</div>'
+                      + '<div style="font-size:0.75em; margin-top:6px; line-height:1.4;">Ganho 12m: +R$ ' + rentGanho12.toFixed(2) + '<br>Médio mês: +R$ ' + rentMensalGanho.toFixed(2) + '<br>Total 12m: R$ ' + rentProj12Total.toFixed(2) + '</div>'
+                  + '</div>'
+                  + '<div style="flex:1 1 180px; min-width:160px; background:#032544; color:#fff; padding:10px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.25);">'
+                      + '<div style="font-weight:700;">🎯 Metas</div>'
+                      + '<div style="font-size:1.1em; font-weight:700; margin-top:4px;">R$ ' + metasBase.toFixed(2) + '</div>'
+                      + '<div style="font-size:0.75em; margin-top:6px; line-height:1.4;">Projeção 12m: R$ ' + metasProj12Total.toFixed(2) + '<br>Médio mês aporte: R$ ' + metasBase.toFixed(2) + '</div>'
+                  + '</div>'
+                + '</div>';
+            } else if (typeof saldoMes === 'number') {
+                const saldoClass = saldoMes >= 0 ? 'positivo' : 'negativo';
+                saldoElemento.className = 'kanban-totalizador saldo ' + saldoClass;
+                saldoElemento.innerHTML = '⚖️ Saldo do mês<br><strong>' + (saldoMes >= 0 ? '+' : '-') + 'R$ ' + Math.abs(saldoMes).toFixed(2) + '</strong>';
+            }
         }
 
         // ==================== COFRES (HELPERS) ====================
@@ -2287,6 +2322,7 @@
             return transacao && (transacao.tipo || '').toLowerCase() === 'cofre' && transacao._cofreInfo && transacao._cofreInfo.aplicar_cdi && Number(transacao._cofreInfo.percent_cdi) > 0;
         }
 
+
         function calcularProjecaoPicPay(valorBase, meta) {
             const percent = meta && meta.percent_cdi ? meta.percent_cdi : PICPAY_CDI_DEFAULT;
             const cdiAnual = meta && meta.cdi_anual ? meta.cdi_anual : (percent / 100) * CDI_BASE_ANUAL;
@@ -2298,8 +2334,21 @@
                 total: valorBase + ganho,
                 taxaMensalPerc: taxa30d * 100,
                 percentReferenciado: percent,
-                cdiAnual
+                cdiAnual,
+                taxaDiaria
             };
+        }
+
+        // Projeção composta para ~12 meses usando capitalização diária (252 dias úteis)
+        function calcularProjecao12Meses(valorBase, meta) {
+            if (!meta) meta = {};
+            const percent = meta.percent_cdi || PICPAY_CDI_DEFAULT;
+            const anual = meta.cdi_anual || (percent / 100) * CDI_BASE_ANUAL;
+            if (!anual) return { ganho12: 0, total12: valorBase, anual: 0 };
+            const taxaDiaria = Math.pow(1 + (anual / 100), 1 / 252) - 1;
+            const fatorAno = Math.pow(1 + taxaDiaria, 252);
+            const ganho12 = valorBase * (fatorAno - 1);
+            return { ganho12, total12: valorBase + ganho12, anual, taxaDiaria };
         }
 
         function atualizarKpiCofresPainel({totalBase = 0, totalCdi = 0, totalSem = 0, proj12 = 0} = {}) {
@@ -2866,12 +2915,82 @@
             } else if (relMesEl && relMesEl.value) {
                 mes = relMesEl.value;
             }
+            // Sempre buscar todas as transações e filtrar no front para permitir cofres recorrentes após mês de criação.
+            const url = '/api/transacoes';
+            if (transMesEl && mes && transMesEl.value !== mes) transMesEl.value = mes;
 
-            let url = '/api/transacoes';
-            if (mes) {
-                url += '?mes=' + mes;
-                if (transMesEl && transMesEl.value !== mes) {
-                    transMesEl.value = mes;
+            function parseDataFlex(dataStr) {
+                if (!dataStr) return null;
+                if (dataStr instanceof Date) {
+                    return isNaN(dataStr.getTime()) ? null : dataStr;
+                }
+                let texto = String(dataStr).trim();
+                if (!texto) return null;
+                if (/^\d{4}-\d{2}-\d{2}$/.test(texto)) {
+                    texto += 'T00:00:00';
+                } else if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/.test(texto)) {
+                    texto = texto.replace(' ', 'T');
+                }
+                let data = new Date(texto);
+                if (!isNaN(data.getTime())) return data;
+                // fallback trocando separador
+                data = new Date(texto.replace(/-/g, '/'));
+                return isNaN(data.getTime()) ? null : data;
+            }
+
+            function obterDataReferenciaTransacao(t) {
+                if (!t) return null;
+                const candidatos = [t.vencimento, t.data_pagamento, t.created_at, t.updated_at, t.data];
+                for (const cand of candidatos) {
+                    const data = parseDataFlex(cand);
+                    if (data) return data;
+                }
+                return null;
+            }
+
+            // Helper para verificar se data está dentro do mês selecionado
+            function dentroDoMes(dataObj) {
+                if (!mes) return true; // sem filtro -> tudo
+                if (!dataObj) return true; // sem data -> não escondemos
+                try {
+                    const ano = Number(mes.slice(0, 4));
+                    const mesIdx = Number(mes.slice(5, 7)) - 1;
+                    if (isNaN(ano) || isNaN(mesIdx)) return true;
+                    const inicio = new Date(ano, mesIdx, 1, 0, 0, 0, 0);
+                    const fim = new Date(ano, mesIdx + 1, 0, 23, 59, 59, 999);
+                    const data = dataObj instanceof Date ? dataObj : parseDataFlex(dataObj);
+                    if (!data) return true;
+                    return data >= inicio && data <= fim;
+                } catch {
+                    return true;
+                }
+            }
+
+            function obterDataCriacaoCofre(transacao) {
+                if (!transacao) return null;
+                const candidatos = [];
+                if (transacao._cofreInfo && transacao._cofreInfo.criado_em) {
+                    candidatos.push(transacao._cofreInfo.criado_em);
+                }
+                candidatos.push(transacao.vencimento, transacao.created_at, transacao.data_pagamento);
+                for (const cand of candidatos) {
+                    const data = parseDataFlex(cand);
+                    if (data) return data;
+                }
+                return null;
+            }
+
+            // Helper para verificar se cofre deve aparecer (a partir do mês de criação em diante)
+            function cofreAtivoNoMes(transacao) {
+                if (!mes) return true; // sem filtro -> mostrar todos
+                const dataCriacao = obterDataCriacaoCofre(transacao);
+                if (!dataCriacao) return true;
+                try {
+                    const inicioFiltro = new Date(mes + '-01');
+                    return (inicioFiltro.getFullYear() > dataCriacao.getFullYear()) ||
+                        (inicioFiltro.getFullYear() === dataCriacao.getFullYear() && inicioFiltro.getMonth() >= dataCriacao.getMonth());
+                } catch {
+                    return true;
                 }
             }
 
@@ -2886,36 +3005,67 @@
                         window.transacoesCache[t.id] = t;
                     });
 
+                    // Classificação robusta de tipos
                     const ganhos = [];
                     const despesas = [];
                     const cofres = [];
                     transacoes.forEach(function(t) {
-                        const tipo = (t.tipo || '').toLowerCase();
-                        if (tipo === 'ganho') ganhos.push(t);
-                        else if (tipo === 'despesa') despesas.push(t);
-                        else if (tipo === 'cofre' || tipo === 'investimento') {
+                        const tipoLower = (t.tipo || '').toLowerCase();
+                        if (tipoLower === 'ganho') {
+                            ganhos.push(t);
+                        } else if (tipoLower === 'despesa') {
+                            despesas.push(t);
+                        } else if (tipoLower === 'cofre' || tipoLower === 'investimento') {
                             t.tipo = 'cofre';
                             cofres.push(t);
                         }
                     });
 
-                    const ganhosPendentes = ganhos.filter(t => !t.pago);
-                    const ganhosPagos = ganhos.filter(t => t.pago);
-                    const despesasPendentes = despesas.filter(t => !t.pago);
-                    const despesasPagas = despesas.filter(t => t.pago);
-                    const cofresRentaveis = cofres.filter(ehCofreComRendimento);
-                    const cofresSimples = cofres.filter(t => !ehCofreComRendimento(t));
+                    // Filtragem por mês (ganhos/despesas) usando vencimento
+                    const ganhosFiltrados = ganhos.filter(t => dentroDoMes(obterDataReferenciaTransacao(t)));
+                    const despesasFiltradas = despesas.filter(t => dentroDoMes(obterDataReferenciaTransacao(t)));
+                    const ganhosPendentes = ganhosFiltrados.filter(t => !t.pago);
+                    const ganhosPagos = ganhosFiltrados.filter(t => t.pago);
+                    const despesasPendentes = despesasFiltradas.filter(t => !t.pago);
+                    const despesasPagas = despesasFiltradas.filter(t => t.pago);
+                    // Cofres: mostrar a partir do mês de criação (vencimento) em diante
+                    const cofresVisiveis = cofres.filter(c => cofreAtivoNoMes(c));
+                    const cofresRentaveis = cofresVisiveis.filter(ehCofreComRendimento);
+                    const cofresSimples = cofresVisiveis.filter(t => !ehCofreComRendimento(t));
 
-                    const ganhosTotal = ganhos.reduce((s, t) => s + t.valor, 0);
-                    const despesasTotal = despesas.reduce((s, t) => s + t.valor, 0);
-                    const cofresTotal = cofres.reduce((s, t) => s + t.valor, 0);
+                    const ganhosTotal = ganhosFiltrados.reduce((s, t) => s + t.valor, 0);
+                    const despesasTotal = despesasFiltradas.reduce((s, t) => s + t.valor, 0);
+                    const cofresTotal = cofresVisiveis.reduce((s, t) => s + t.valor, 0);
                     // Saldo permanece ganhos - despesas (investimentos/cofres fora do fluxo de caixa)
                     const saldoTotal = ganhosTotal - despesasTotal;
-
-                    const saldoClass = saldoTotal >= 0 ? 'positivo' : 'negativo';
-                    saldoElemento.classList.remove('positivo', 'negativo');
-                    saldoElemento.classList.add(saldoClass);
-                    saldoElemento.innerHTML = '⚖️ Saldo do mês<br><strong>' + (saldoTotal >= 0 ? '+' : '-') + 'R$ ' + Math.abs(saldoTotal).toFixed(2) + '</strong>';
+                    // Guardar total de ganhos do mês para sugestão de aporte em metas (10%)
+                    window._ganhosTotalMes = ganhosTotal;
+                    // Guardar resumos globais para atualização dinâmica
+                    window._saldoMes = saldoTotal;
+                    const rendendo = cofres.filter(ehCofreComRendimento);
+                    const metas = cofres.filter(c => !ehCofreComRendimento(c));
+                    let ganhoCdi12 = 0;
+                    rendendo.forEach(c => {
+                        const proj = calcularProjecao12Meses(Number(c.valor || 0), c._cofreInfo || {});
+                        ganhoCdi12 += proj.ganho12;
+                    });
+                    const metasProj12 = metas.reduce((s,m)=> s + (Number(m.valor||0)*12),0);
+                    // Novo resumo separado para cofres rentáveis (CDI) e metas simples
+                    const rentBase = rendendo.reduce((s,c)=> s + Number(c.valor||0),0);
+                    const rentProj12Total = rendendo.reduce((s,c)=> {
+                        const proj = calcularProjecao12Meses(Number(c.valor||0), c._cofreInfo||{});
+                        return s + proj.total12;
+                    },0);
+                    const metasBase = metas.reduce((s,m)=> s + Number(m.valor||0),0);
+                    const metasProj12Total = metasBase * 12; // metas: valor mensal projetado em 12 meses
+                    window._resumoCofres = {
+                        rentBase: rentBase,
+                        rentGanho12: ganhoCdi12,
+                        rentProj12Total: rentProj12Total,
+                        metasBase: metasBase,
+                        metasProj12Total: metasProj12Total
+                    };
+                    atualizarSaldoTransacoesResumo();
 
                     renderizarListaTransacoes('ganhos-pendentes', ganhosPendentes, 'Nenhum ganho pendente');
                     renderizarListaTransacoes('ganhos-pagos', ganhosPagos, 'Nenhum ganho recebido');
@@ -2923,7 +3073,7 @@
                     renderizarListaTransacoes('despesas-pagas', despesasPagas, 'Nenhuma despesa paga');
                     if (cofresRentaveisEl && cofresSimplesEl) {
                         renderizarListaTransacoes('cofres-rentaveis', cofresRentaveis, 'Nenhum cofre com rendimento ativo');
-                        renderizarListaTransacoes('cofres-simples', cofresSimples, 'Nenhum cofre sem rendimento');
+                        renderizarListaTransacoes('cofres-simples', cofresSimples, 'Nenhuma meta cadastrada');
                     }
                 })
                 .catch(err => {
@@ -2955,14 +3105,25 @@
                 ? (t.observacao && t.observacao.trim() ? t.observacao.trim() : 'Cofre / Investimento')
                 : (t.categoria || '—');
             const metaIcon = tipo === 'cofre' ? '🐷' : '🏷️';
-            const cofreBadge = tipo === 'cofre'
-                ? ('<div style="margin-top:4px; font-size:0.7em; font-weight:600; color:' + (ehCofreComRendimento(t) ? '#0074D9' : '#64748b') + ';">' + (ehCofreComRendimento(t)
-                    ? 'Rende ' + (t._cofreInfo.percent_cdi || PICPAY_CDI_DEFAULT) + '% do CDI'
-                    : 'Sem rendimento automático') + '</div>')
-                : '';
+            // Removido badge azul para simplificar visual
+            const cofreBadge = '';
+            let proj12Html = '';
+            let mediaMesHtml = '';
+            if (tipo === 'cofre') {
+                if (ehCofreComRendimento(t)) {
+                    const proj = calcularProjecao12Meses(Number(t.valor || 0), t._cofreInfo || {});
+                    const ganho12Fmt = 'R$ ' + proj.ganho12.toFixed(2);
+                    proj12Html = '<div style="font-size:0.70em; font-weight:600; color:#64748b;">Projeção 12m (ganho): +' + ganho12Fmt + '</div>';
+                    const mediaMes = proj.ganho12 / 12;
+                    mediaMesHtml = '<div style="font-size:0.65em; font-weight:600; color:#64748b;">/ mês: +R$ ' + mediaMes.toFixed(2) + '</div>';
+                } else {
+                    const projMeta = Number(t.valor || 0) * 12;
+                    proj12Html = '<div style="font-size:0.70em; font-weight:600; color:#64748b;">Projeção 12m (meta): R$ ' + projMeta.toFixed(2) + '</div>';
+                    mediaMesHtml = '<div style="font-size:0.65em; font-weight:600; color:#64748b;">/ mês: R$ ' + Number(t.valor||0).toFixed(2) + '</div>';
+                }
+            }
             const toggleIcon = t.pago ? '↩️' : '✓';
             const toggleLabel = t.pago ? 'Desfazer pagamento' : 'Marcar como pago';
-
             return '<div class="' + classeCard + '">' +
                 '<div class="kanban-card-info">' +
                     '<div class="kanban-card-top">' +
@@ -2972,6 +3133,8 @@
                         '</div>' +
                     '</div>' +
                     '<div class="kanban-card-meta-categoria">' + metaIcon + ' ' + categoria + '</div>' + cofreBadge +
+                    (proj12Html ? proj12Html : '') +
+                    (mediaMesHtml ? mediaMesHtml : '') +
                 '</div>' +
                 '<div class="kanban-card-acoes">' +
                     '<button class="kanban-btn kanban-btn-ver" aria-label="Ver detalhes" onclick="verDetalhesTransacao(' + t.id + ')">👁️</button>' +
