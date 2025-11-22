@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Controle Financeiro & Lista de Compras</title>
     <style>
         * {
@@ -837,6 +837,50 @@
             grid-template-columns: 1fr;
             gap: 12px;
             margin-top: 0;
+        }
+
+        /* Ajuste: centralizar e padronizar largura dos cartões dentro
+           das colunas de transações (corrige desalinhamento de cartões pagos) */
+        .transacoes-coluna .kanban-container {
+            justify-items: center;
+        }
+
+        .transacoes-coluna .kanban-container > * {
+            width: auto; /* permitir centralizar com max-width */
+            min-width: 220px; /* mantém legibilidade */
+            max-width: 420px; /* evita cartões muito largos e garante uniformidade */
+            box-sizing: border-box;
+        }
+
+        /* === Ajustes para melhorar aproveitamento de espaço na aba Financeiro === */
+        /* Reduz o padding lateral dos cards dentro das abas internas para aumentar área útil */
+        .tab-content-interno .card {
+            padding: 14px 16px;
+        }
+
+        /* Menos espaçamento interno nas colunas de transações, permite mais largura para os kanban cards */
+        .transacoes-coluna {
+            padding: 12px;
+        }
+
+        /* Aumenta largura mínima das colunas para usar melhor o espaço em telas maiores */
+        .transacoes-duas-colunas {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        /* Garante que o conteúdo interno aproveite toda a largura disponível */
+        .tab-content-transacao, .transacoes-duas-colunas, .transacoes-coluna {
+            width: 100%;
+        }
+
+        /* Remover bordas/margens do container de transações para aproveitar 100% da largura */
+        #transacoes-content.dashboard-section {
+            border: none;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            box-shadow: none;
         }
 
         /* ==================== MODAL EDIÇÃO ====================*/
@@ -1722,6 +1766,7 @@
             </div>
 
             <!-- ABA 2: TRANSACOES -->
+<<<<<<< HEAD
             <div id="listar-transacoes" class="tab-content-interno tab-pane-financeiro financeiro-transacoes">
                 <div class="transacoes-top">
                     <div>
@@ -1729,6 +1774,12 @@
                         <p class="transacoes-subtitulo">Acompanhe ganhos e despesas em tempo real</p>
                     </div>
                     <div class="form-group">
+=======
+            <div id="listar-transacoes" class="tab-content-interno">
+                <div id="transacoes-content" class="dashboard-section">
+                    <h3>Transações</h3>
+                    <div class="form-group" style="max-width: 260px;">
+>>>>>>> a15410e78a8f824a6c2916aa6e96b6a164eda5db
                         <label for="transacoes-mes">Filtrar mês</label>
                         <input type="month" id="transacoes-mes" onchange="carregarTransacoes()">
                     </div>
