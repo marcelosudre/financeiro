@@ -1686,10 +1686,7 @@
     <!-- Calendar removed per user request -->
 
     <div class="container">
-        <header>
-            <h1></h1>
-            <p>Gerencie suas contas, ganhos e lista de compras em um único lugar</p>
-        </header>
+        <!-- Header removido conforme solicitação do usuário -->
 
         <div class="tabs">
             <button class="tab-btn active" data-tab="dashboard" onclick="abrirAba(event, 'dashboard')">📈 Dashboard</button>
@@ -1752,6 +1749,7 @@
                             <option value="">-- Selecionar --</option>
                             <option value="despesa">Despesa</option>
                             <option value="ganho">Ganho</option>
+                            <option value="cofre">Cofre</option>
                         </select>
                     </div>
 
@@ -1845,6 +1843,7 @@
                 <div class="tabs-transacoes">
                     <button class="tab-btn-transacao active" onclick="abrirAbaTransacoes(event, 'tab-ganhos')">💰 Ganhos</button>
                     <button class="tab-btn-transacao" onclick="abrirAbaTransacoes(event, 'tab-despesas')">💸 Despesas</button>
+                    <button class="tab-btn-transacao" onclick="abrirAbaTransacoes(event, 'tab-cofres')">🐷 Cofres</button>
                 </div>
 
                 <div id="tab-ganhos" class="tab-content-transacao active">
@@ -1872,6 +1871,19 @@
                         </div>
                     </div>
                 </div>
+
+                <div id="tab-cofres" class="tab-content-transacao" hidden>
+                    <div class="transacoes-duas-colunas">
+                        <div class="transacoes-coluna">
+                            <h5>⏳ Pendentes</h5>
+                            <div id="cofres-pendentes" class="kanban-container"></div>
+                        </div>
+                        <div class="transacoes-coluna">
+                            <h5>✅ Finalizados</h5>
+                            <div id="cofres-pagos" class="kanban-container"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- ABA 3: CATEGORIAS (movida para Financeiro) -->
@@ -1884,6 +1896,7 @@
                         <select id="cat-tipo">
                             <option value="despesa">Despesa</option>
                             <option value="ganho">Ganho</option>
+                            <option value="cofre">Cofre</option>
                         </select>
                     </div>
 
@@ -1970,6 +1983,7 @@
                     <option value="">-- Selecionar --</option>
                     <option value="despesa">Despesa</option>
                     <option value="ganho">Ganho</option>
+                    <option value="cofre">Cofre</option>
                 </select>
             </div>
 
@@ -2404,6 +2418,12 @@
                     html += '<div class="kpi-card positivo"><h4>💰 Ganhos</h4><div class="kpi-valor">R$ ' + (dados.ganhos.total || 0).toFixed(2) + '</div><small>Recebidos: R$ ' + (dados.ganhos.recebidos || 0).toFixed(2) + '<br> Pendentes: R$ ' + (dados.ganhos.pendentes || 0).toFixed(2) + '</small></div>';
                     const saldoClass = (dados.saldo || 0) >= 0 ? 'positivo' : 'negativo';
                     html += '<div class="kpi-card ' + saldoClass + '"><h4>⚖️ Saldo</h4><div class="kpi-valor">' + (dados.saldo >= 0 ? '+' : '') + 'R$ ' + (dados.saldo || 0).toFixed(2) + '</div><small>Ganhos - Despesas</small></div>';
+                    // KPI Cofres (se backend já fornecer) ou placeholder
+                    if (dados.cofres && typeof dados.cofres.total !== 'undefined') {
+                        html += '<div class="kpi-card" style="background:#001f3f; color:#fff;"><h4>🐷 Cofres</h4><div class="kpi-valor">R$ ' + (dados.cofres.total || 0).toFixed(2) + '</div><small>Finalizados: R$ ' + (dados.cofres.finalizados || 0).toFixed(2) + '<br> Pendentes: R$ ' + (dados.cofres.pendentes || 0).toFixed(2) + '</small></div>';
+                    } else {
+                        html += '<div class="kpi-card" id="kpi-cofres" style="background:#001f3f; color:#fff;"><h4>🐷 Cofres</h4><div class="kpi-valor">Carregando...</div><small>Investimentos / reservas</small></div>';
+                    }
                     html += '</div>';
 
                     // Gráfico do mês filtrado (substitui o antigo 'Gastos por Mês' quando um mês for selecionado)
@@ -2438,6 +2458,26 @@
                     carregarCategoriasDashParaGrafico();
                     toggleGraficoDashboard();
                     carregarMetricas();
+                    // Se não veio "cofres" do dashboard, computar via transações
+                    if (!dados.cofres) {
+                        const mesUsado = mes || mesSelecionado || mesAtual;
+                        let urlTrans = '/api/transacoes';
+                        if (mesUsado) urlTrans += '?mes=' + mesUsado;
+                        fetch(urlTrans)
+                            .then(r => r.json())
+                            .then(lista => {
+                                if (!Array.isArray(lista)) return;
+                                const cofres = lista.filter(t => t.tipo === 'cofre');
+                                const total = cofres.reduce((s,t)=> s + (t.valor||0), 0);
+                                const pend = cofres.filter(t=> !t.pago).reduce((s,t)=> s + (t.valor||0),0);
+                                const fin = cofres.filter(t=> t.pago).reduce((s,t)=> s + (t.valor||0),0);
+                                const kpi = document.getElementById('kpi-cofres');
+                                if (kpi) {
+                                    kpi.innerHTML = '<h4>🐷 Cofres</h4><div class="kpi-valor">R$ ' + total.toFixed(2) + '</div><small>Finalizados: R$ ' + fin.toFixed(2) + '<br> Pendentes: R$ ' + pend.toFixed(2) + '</small>';
+                                }
+                            })
+                            .catch(()=>{});
+                    }
                 })
                 .catch(error => {
                     console.error('Erro:', error);
@@ -2448,7 +2488,8 @@
         // ==================== FINANCEIRO ====================
         var categoriasPorTipo = {
             despesa: ['Aluguel', 'Alimentação', 'Combustível', 'Contas', 'Educação', 'Farmácia', 'Ração', 'Outro'],
-            ganho: ['Conta Bancária', 'Freelance', 'Investimento', 'Outro']
+            ganho: ['Conta Bancária', 'Freelance', 'Investimento', 'Outro'],
+            cofre: ['Reserva', 'Investimento', 'Poupança', 'Outro']
         };
 
         function atualizarCategoriasCombo() {
@@ -2554,6 +2595,8 @@
             const ganhosPagosEl = document.getElementById('ganhos-pagos');
             const despesasPendentesEl = document.getElementById('despesas-pendentes');
             const despesasPagasEl = document.getElementById('despesas-pagas');
+            const cofresPendentesEl = document.getElementById('cofres-pendentes');
+            const cofresPagosEl = document.getElementById('cofres-pagos');
             const saldoElemento = document.getElementById('transacoes-saldo');
             if (!ganhosPendentesEl || !ganhosPagosEl || !despesasPendentesEl || !despesasPagasEl || !saldoElemento) return;
 
@@ -2589,14 +2632,19 @@
 
                     const ganhos = transacoes.filter(t => t.tipo === 'ganho');
                     const despesas = transacoes.filter(t => t.tipo === 'despesa');
+                    const cofres = transacoes.filter(t => t.tipo === 'cofre');
 
                     const ganhosPendentes = ganhos.filter(t => !t.pago);
                     const ganhosPagos = ganhos.filter(t => t.pago);
                     const despesasPendentes = despesas.filter(t => !t.pago);
                     const despesasPagas = despesas.filter(t => t.pago);
+                    const cofresPendentes = cofres.filter(t => !t.pago);
+                    const cofresPagos = cofres.filter(t => t.pago);
 
                     const ganhosTotal = ganhos.reduce((s, t) => s + t.valor, 0);
                     const despesasTotal = despesas.reduce((s, t) => s + t.valor, 0);
+                    const cofresTotal = cofres.reduce((s, t) => s + t.valor, 0);
+                    // Saldo permanece ganhos - despesas (investimentos/cofres fora do fluxo de caixa)
                     const saldoTotal = ganhosTotal - despesasTotal;
 
                     const saldoClass = saldoTotal >= 0 ? 'positivo' : 'negativo';
@@ -2608,6 +2656,10 @@
                     renderizarListaTransacoes('ganhos-pagos', ganhosPagos, 'Nenhum ganho recebido');
                     renderizarListaTransacoes('despesas-pendentes', despesasPendentes, 'Nenhuma despesa pendente');
                     renderizarListaTransacoes('despesas-pagas', despesasPagas, 'Nenhuma despesa paga');
+                    if (cofresPendentesEl && cofresPagosEl) {
+                        renderizarListaTransacoes('cofres-pendentes', cofresPendentes, 'Nenhum cofre pendente');
+                        renderizarListaTransacoes('cofres-pagos', cofresPagos, 'Nenhum cofre finalizado');
+                    }
                 })
                 .catch(err => {
                     console.error('Erro ao carregar transações:', err);
@@ -2615,6 +2667,8 @@
                     ganhosPagosEl.innerHTML = '<div class="erro">Erro ao carregar ganhos recebidos</div>';
                     despesasPendentesEl.innerHTML = '<div class="erro">Erro ao carregar despesas pendentes</div>';
                     despesasPagasEl.innerHTML = '<div class="erro">Erro ao carregar despesas pagas</div>';
+                    if (cofresPendentesEl) cofresPendentesEl.innerHTML = '<div class="erro">Erro ao carregar cofres pendentes</div>';
+                    if (cofresPagosEl) cofresPagosEl.innerHTML = '<div class="erro">Erro ao carregar cofres finalizados</div>';
                 });
         }
 
