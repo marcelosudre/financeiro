@@ -1803,9 +1803,20 @@
                         </select>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group" id="vencimento-grupo">
                         <label for="vencimento">Data de Vencimento</label>
                         <input type="date" id="vencimento">
+                    </div>
+
+                    <div class="form-group" id="cofre-opcoes" style="display:none;">
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                            <input type="checkbox" id="cofre-aplicar-cdi" onchange="toggleCampoCDI()" style="width:18px; height:18px; accent-color:#00d4ff;">
+                            <span style="font-weight:600;">Aplicar rendimento CDI?</span>
+                        </label>
+                    </div>
+                    <div class="form-group" id="cofre-cdi-grupo" style="display:none;">
+                        <label for="cofre-cdi-percent">Percentual sobre CDI (%)</label>
+                        <input type="number" id="cofre-cdi-percent" step="0.01" min="0" placeholder="Ex: 102">
                     </div>
 
                     <div class="form-group">
@@ -1875,12 +1886,12 @@
                 <div id="tab-cofres" class="tab-content-transacao" hidden>
                     <div class="transacoes-duas-colunas">
                         <div class="transacoes-coluna">
-                            <h5>⏳ Pendentes</h5>
-                            <div id="cofres-pendentes" class="kanban-container"></div>
+                            <h5>🐷 Cofres com rendimento (PicPay/CDI)</h5>
+                            <div id="cofres-rentaveis" class="kanban-container"></div>
                         </div>
                         <div class="transacoes-coluna">
-                            <h5>✅ Finalizados</h5>
-                            <div id="cofres-pagos" class="kanban-container"></div>
+                            <h5>💤 Cofres sem rendimento</h5>
+                            <div id="cofres-simples" class="kanban-container"></div>
                         </div>
                     </div>
                 </div>
@@ -2002,6 +2013,17 @@
                 <input type="number" id="modal-valor" step="0.01" min="0">
             </div>
 
+            <div class="form-group" id="modal-cofre-opcoes" style="display:none;">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" id="modal-cofre-aplicar-cdi" onchange="toggleCampoCDIModal()" style="width:20px; height:20px; accent-color:#00d4ff;">
+                    <span style="font-weight:600;">Aplicar rendimento CDI?</span>
+                </label>
+            </div>
+            <div class="form-group" id="modal-cofre-cdi-grupo" style="display:none;">
+                <label for="modal-cofre-cdi-percent">Percentual sobre CDI (%)</label>
+                <input type="number" id="modal-cofre-cdi-percent" step="0.01" min="0" placeholder="Ex: 102">
+            </div>
+
             <div class="form-group">
                 <label for="modal-categoria">Categoria</label>
                 <select id="modal-categoria">
@@ -2009,7 +2031,7 @@
                 </select>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="modal-vencimento-grupo">
                 <label for="modal-vencimento">Data de Vencimento</label>
                 <input type="date" id="modal-vencimento">
             </div>
@@ -2059,6 +2081,10 @@
                 <div class="detalhe-item">
                     <label>Observação</label>
                     <p id="detalhe-observacao">—</p>
+                </div>
+                <div class="detalhe-item" id="detalhe-cofre-projecao" style="display:none;">
+                    <label>Projeção PicPay (30 dias)</label>
+                    <p id="detalhe-cofre-texto">—</p>
                 </div>
             </div>
         </div>
@@ -2201,6 +2227,89 @@
             if (event && event.currentTarget) {
                 event.currentTarget.classList.add('active');
             }
+        }
+
+        // ==================== COFRES (HELPERS) ====================
+        const COFRE_META_PREFIX = '__COFRE__';
+        const CDI_BASE_ANUAL = 13.15; // % anual aproximado
+        const PICPAY_CDI_DEFAULT = 102; // PicPay divulga 102% do CDI com liquidez diária
+
+        function montarObservacaoCofre({nota, aplicar_cdi, percent_cdi, cdi_anual, fonte}) {
+            const meta = {
+                tipo: 'cofre',
+                nota: nota || '',
+                aplicar_cdi: !!aplicar_cdi,
+                percent_cdi: percent_cdi || 0,
+                cdi_anual: cdi_anual || 0,
+                fonte: fonte || 'picpay',
+                criado_em: new Date().toISOString()
+            };
+            return COFRE_META_PREFIX + JSON.stringify(meta);
+        }
+
+        function extrairMetaCofre(observacao) {
+            if (!observacao || typeof observacao !== 'string') return null;
+            if (!observacao.startsWith(COFRE_META_PREFIX)) return null;
+            try {
+                const json = observacao.slice(COFRE_META_PREFIX.length);
+                return JSON.parse(json);
+            } catch (e) {
+                console.warn('Falha ao ler meta do cofre', e);
+                return null;
+            }
+        }
+
+        function enriquecerTransacaoCofre(transacao) {
+            if (!transacao) return transacao;
+            const tipoAtual = (transacao.tipo || '').toLowerCase();
+            if (tipoAtual === 'investimento') transacao.tipo = 'cofre';
+            if ((transacao.tipo || '').toLowerCase() !== 'cofre') return transacao;
+
+            const meta = extrairMetaCofre(transacao.observacao);
+            if (meta) {
+                transacao._cofreInfo = meta;
+                transacao.observacao = meta.nota || '';
+                transacao.aplicar_cdi = meta.aplicar_cdi;
+                transacao.percent_cdi = meta.percent_cdi;
+                transacao.cdi_anual = meta.cdi_anual;
+            } else if (!transacao._cofreInfo) {
+                transacao._cofreInfo = {
+                    aplicar_cdi: !!transacao.aplicar_cdi,
+                    percent_cdi: transacao.percent_cdi || 0,
+                    cdi_anual: transacao.cdi_anual || 0,
+                    nota: transacao.observacao || ''
+                };
+            }
+            return transacao;
+        }
+
+        function ehCofreComRendimento(transacao) {
+            return transacao && (transacao.tipo || '').toLowerCase() === 'cofre' && transacao._cofreInfo && transacao._cofreInfo.aplicar_cdi && Number(transacao._cofreInfo.percent_cdi) > 0;
+        }
+
+        function calcularProjecaoPicPay(valorBase, meta) {
+            const percent = meta && meta.percent_cdi ? meta.percent_cdi : PICPAY_CDI_DEFAULT;
+            const cdiAnual = meta && meta.cdi_anual ? meta.cdi_anual : (percent / 100) * CDI_BASE_ANUAL;
+            const taxaDiaria = Math.pow(1 + (cdiAnual / 100), 1 / 252) - 1;
+            const taxa30d = Math.pow(1 + taxaDiaria, 30) - 1;
+            const ganho = valorBase * taxa30d;
+            return {
+                ganho,
+                total: valorBase + ganho,
+                taxaMensalPerc: taxa30d * 100,
+                percentReferenciado: percent,
+                cdiAnual
+            };
+        }
+
+        function atualizarKpiCofresPainel({totalBase = 0, totalCdi = 0, totalSem = 0, proj12 = 0} = {}) {
+            const kpi = document.getElementById('kpi-cofres');
+            if (!kpi) return;
+
+            kpi.innerHTML = '<h4>🐷 Cofres</h4>' +
+                '<div class="kpi-valor">R$ ' + totalBase.toFixed(2) + '</div>' +
+                '<small><strong>CDI:</strong> R$ ' + totalCdi.toFixed(2) + ' (12m: R$ ' + proj12.toFixed(2) + ')<br>' +
+                '<strong>Sem rendimento:</strong> R$ ' + totalSem.toFixed(2) + '</small>';
         }
 
         // ==================== DASHBOARD ====================
@@ -2418,27 +2527,19 @@
                     html += '<div class="kpi-card positivo"><h4>💰 Ganhos</h4><div class="kpi-valor">R$ ' + (dados.ganhos.total || 0).toFixed(2) + '</div><small>Recebidos: R$ ' + (dados.ganhos.recebidos || 0).toFixed(2) + '<br> Pendentes: R$ ' + (dados.ganhos.pendentes || 0).toFixed(2) + '</small></div>';
                     const saldoClass = (dados.saldo || 0) >= 0 ? 'positivo' : 'negativo';
                     html += '<div class="kpi-card ' + saldoClass + '"><h4>⚖️ Saldo</h4><div class="kpi-valor">' + (dados.saldo >= 0 ? '+' : '') + 'R$ ' + (dados.saldo || 0).toFixed(2) + '</div><small>Ganhos - Despesas</small></div>';
-                    // KPI Cofres (se backend já fornecer) ou placeholder
-                    if (dados.cofres && typeof dados.cofres.total !== 'undefined') {
-                        html += '<div class="kpi-card" style="background:#001f3f; color:#fff;"><h4>🐷 Cofres</h4><div class="kpi-valor">R$ ' + (dados.cofres.total || 0).toFixed(2) + '</div><small>Finalizados: R$ ' + (dados.cofres.finalizados || 0).toFixed(2) + '<br> Pendentes: R$ ' + (dados.cofres.pendentes || 0).toFixed(2) + '</small></div>';
-                    } else {
-                        html += '<div class="kpi-card" id="kpi-cofres" style="background:#001f3f; color:#fff;"><h4>🐷 Cofres</h4><div class="kpi-valor">Carregando...</div><small>Investimentos / reservas</small></div>';
-                    }
+                    html += '<div class="kpi-card" id="kpi-cofres" style="background:#001f3f; color:#fff;"><h4>🐷 Cofres</h4><div class="kpi-valor">Carregando...</div><small>Projeção CDI (12 meses)</small></div>';
                     html += '</div>';
 
-                    // Gráfico do mês filtrado (substitui o antigo 'Gastos por Mês' quando um mês for selecionado)
-                    html += '<div class="dashboard-section"><h3>📅 Métricas do Mês</h3>';
-                    html += '<div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">';
-                    html += '<label style="font-weight:600; color:#001f3f; display:flex; align-items:center; gap:8px;">Mostrar mês selecionado</label>';
-                    html += '<label style="font-weight:600; color:#001f3f;">Filtrar categoria:</label>';
-                    html += '<select id="dash-cat-select" onchange="atualizarGraficoMes()" style="padding:8px; border:2px solid #ddd; border-radius:6px;"></select>';
-                    html += '</div>';
-                    html += '<div id="grafico-dashboard-wrapper">';
-                    html += '<div id="chart-meses-dashboard" class="simple-chart"></div>';
-                    html += '</div>';
-                    html += '</div>';
-
-                    // Calendário removido (opção do usuário)
+                    html += '<div class="dashboard-section" style="margin-top:24px;">'
+                        + '<h3 style="margin:0 0 12px;">🥧 Despesas por Categoria</h3>'
+                        + '<div id="chart-pizza-despesas" class="chart-pizza"></div>'
+                    + '</div>';
+                    html += '<div class="dashboard-section" style="margin-top:24px;">'
+                        + '<div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px;">'
+                        + '<div><h3 style="margin:0;"> Despesas X Ganhos</h3></div>'
+                        + '</div>'
+                        + '<div id="chart-barras-dg" class="simple-chart" style="margin-top:12px;"></div>'
+                    + '</div>';
 
                     // inserir tudo
                     document.getElementById('dashboard-content').innerHTML = headerHtml + html;
@@ -2454,35 +2555,127 @@
                     // garantir que o seletor de mês mantenha o mês que foi usado na busca
                     const dashInput = document.getElementById('dashboard-mes');
                     if (dashInput) dashInput.value = mes || mesSelecionado || mesAtual;
-                    // preencher categorias do filtro do gráfico e renderizar gráfico inicial
-                    carregarCategoriasDashParaGrafico();
-                    toggleGraficoDashboard();
+                    // Funções de gráfico mensal removidas
                     carregarMetricas();
-                    // Se não veio "cofres" do dashboard, computar via transações
-                    if (!dados.cofres) {
-                        const mesUsado = mes || mesSelecionado || mesAtual;
-                        let urlTrans = '/api/transacoes';
-                        if (mesUsado) urlTrans += '?mes=' + mesUsado;
-                        fetch(urlTrans)
-                            .then(r => r.json())
-                            .then(lista => {
-                                if (!Array.isArray(lista)) return;
-                                const cofres = lista.filter(t => t.tipo === 'cofre');
-                                const total = cofres.reduce((s,t)=> s + (t.valor||0), 0);
-                                const pend = cofres.filter(t=> !t.pago).reduce((s,t)=> s + (t.valor||0),0);
-                                const fin = cofres.filter(t=> t.pago).reduce((s,t)=> s + (t.valor||0),0);
-                                const kpi = document.getElementById('kpi-cofres');
-                                if (kpi) {
-                                    kpi.innerHTML = '<h4>🐷 Cofres</h4><div class="kpi-valor">R$ ' + total.toFixed(2) + '</div><small>Finalizados: R$ ' + fin.toFixed(2) + '<br> Pendentes: R$ ' + pend.toFixed(2) + '</small>';
-                                }
-                            })
-                            .catch(()=>{});
-                    }
+                    gerarGraficosExtrasDashboard(mes || mesSelecionado || mesAtual);
                 })
                 .catch(error => {
                     console.error('Erro:', error);
                     document.getElementById('dashboard-content').innerHTML = '<div class="erro">Erro ao carregar dashboard</div>';
                 });
+        }
+
+        function gerarGraficosExtrasDashboard(mesRef) {
+            const transUrl = '/api/transacoes' + (mesRef ? ('?mes='+mesRef) : '');
+            Promise.all([
+                fetch(transUrl).then(r=>r.json()).catch(()=>[]),
+                fetch('/api/categorias?tipo=despesa').then(r=>r.json()).catch(()=>[]),
+                fetch('/api/transacoes').then(r=>r.json()).catch(()=>[])
+            ]).then(([lista,categorias,listaAno])=> {
+                if (!Array.isArray(lista)) lista = [];
+                if (!Array.isArray(listaAno)) listaAno = [];
+                const colorMap = {};
+                categorias.forEach(c=> { if (c.nome && c.cor) colorMap[c.nome] = c.cor; });
+
+                lista.forEach(enriquecerTransacaoCofre);
+                listaAno.forEach(enriquecerTransacaoCofre);
+                const anoAtual = new Date().getFullYear();
+                const listaAnoCorrente = listaAno.filter(t=> {
+                    const dataRef = (t.vencimento || t.data_pagamento || t.created_at || '').slice(0,4);
+                    return dataRef === String(anoAtual);
+                });
+
+                // Pizza despesas
+                const despesas = lista.filter(t=> t.tipo==='despesa');
+                const porCat = {};
+                despesas.forEach(d=> { const c = d.categoria||'Outros'; porCat[c] = (porCat[c]||0) + (d.valor||0); });
+                const totalDesp = Object.values(porCat).reduce((s,v)=>s+v,0) || 0;
+                const pizzaEl = document.getElementById('chart-pizza-despesas');
+                if (pizzaEl) {
+                    if (totalDesp === 0) { pizzaEl.innerHTML = '<div class="empty-state"><p>Sem despesas.</p></div>'; }
+                    else {
+                        const ordenado = Object.entries(porCat).sort((a,b)=> b[1]-a[1]);
+                        let acumulado = 0;
+                        const partes = ordenado.map(([cat,val],idx)=> {
+                            const inicio = (acumulado/totalDesp)*100;
+                            acumulado += val;
+                            const fim = (acumulado/totalDesp)*100;
+                            const cor = colorMap[cat] || ['#001f3f','#0074D9','#39CCCC','#2ECC40','#FF851B','#FF4136','#B10DC9','#85144b','#AAAAAA'][idx % 9];
+                            return {cat,val,inicio,fim,cor};
+                        });
+                        const gradient = partes.map(p=> p.cor+' '+p.inicio+'% '+p.fim+'%').join(', ');
+                        let legenda = '<div style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">';
+                        partes.forEach(p=> { legenda += '<div style="display:flex; align-items:center; gap:6px; font-size:0.75em; font-weight:600;"><span style="width:12px; height:12px; background:'+p.cor+'; display:inline-block; border-radius:3px;"></span>'+p.cat+' - R$ '+p.val.toFixed(2)+' ('+((p.val/totalDesp)*100).toFixed(1)+'%)</div>'; });
+                        legenda += '</div>';
+                        pizzaEl.innerHTML = '<div style="width:140px; height:140px; border-radius:50%; background:conic-gradient('+gradient+'); box-shadow:0 0 8px rgba(0,0,0,0.15);"></div>' + legenda;
+                    }
+                }
+
+                // Barras anuais (12 meses ano corrente) com eixo zero: ganhos positivos, despesas negativas
+                const porMes = {};
+                listaAnoCorrente.forEach(t=> {
+                    const mes = (t.vencimento || t.data_pagamento || t.created_at || '').slice(0,7);
+                    if (!mes) return;
+                    porMes[mes] = porMes[mes] || {desp:0, ganho:0};
+                    if (t.tipo==='despesa') porMes[mes].desp += (t.valor||0);
+                    if (t.tipo==='ganho') porMes[mes].ganho += (t.valor||0);
+                });
+                const mesesAno = Array.from({length:12}, (_,i)=> anoAtual+'-'+String(i+1).padStart(2,'0'));
+                mesesAno.forEach(m=> {
+                    if (!porMes[m]) porMes[m] = {desp:0, ganho:0};
+                });
+                const barrasEl = document.getElementById('chart-barras-dg');
+                if (barrasEl) {
+                    const maxVal = Math.max(...mesesAno.map(m=> Math.max(porMes[m].desp, porMes[m].ganho)), 1);
+                    let htmlB = '<div style="display:flex; gap:16px; align-items:flex-end; padding:8px 4px; overflow-x:auto;">';
+                    mesesAno.forEach(m=> {
+                        const d = porMes[m];
+                        const hDesp = (d.desp/maxVal)*70;
+                        const hGanho = (d.ganho/maxVal)*70;
+                        htmlB += '<div style="width:48px; display:flex; flex-direction:column; align-items:center; position:relative;">';
+                        htmlB += '<div style="height:'+hGanho+'px; width:20px; background:#00a854; border-radius:4px 4px 0 0; display:flex; align-items:flex-end; justify-content:center; font-size:0.55em; color:#fff;">'+(d.ganho>0? 'R$ '+d.ganho.toFixed(0):'')+'</div>';
+                        htmlB += '<div style="width:24px; height:2px; background:#ccc; margin:2px 0;"></div>';
+                        htmlB += '<div style="height:'+hDesp+'px; width:20px; background:#d9534f; border-radius:0 0 4px 4px; display:flex; align-items:flex-start; justify-content:center; font-size:0.55em; color:#fff;">'+(d.desp>0? 'R$ '+d.desp.toFixed(0):'')+'</div>';
+                        htmlB += '<div style="margin-top:4px; font-size:0.6em; font-weight:600;">'+m.slice(5,7)+'</div>';
+                        htmlB += '</div>';
+                    });
+                    htmlB += '</div>';
+                    if (!lista.length) {
+                        htmlB += '<div class="empty-state" style="margin-top:8px;"><p>Sem movimentações no ano, exibindo referência zerada.</p></div>';
+                    }
+                    barrasEl.innerHTML = htmlB;
+                }
+
+                // Projeção dos cofres (12 meses, foco CDI)
+                const cofres = listaAno.filter(t=> (t.tipo||'').toLowerCase()==='cofre');
+                const aplicaveis = cofres.filter(ehCofreComRendimento);
+                const base = cofres.reduce((s,c)=> s + (c.valor||0),0);
+                const totalCdi = aplicaveis.reduce((s,c)=> s + (c.valor||0),0);
+                const totalSem = Math.max(base - totalCdi, 0);
+
+                let serieMensal = [];
+                for (let m=0; m<=12; m++) {
+                    let totalMes = base;
+                    aplicaveis.forEach(c=> {
+                        const meta = c._cofreInfo || {};
+                        const anual = meta.cdi_anual || c.cdi_anual || 0;
+                        const r_m = anual/100/12;
+                        totalMes += (c.valor||0) * (Math.pow(1+r_m,m) - 1);
+                    });
+                    serieMensal.push({mes:m, valor: totalMes});
+                }
+                const proj12 = serieMensal.length > 12 ? serieMensal[12].valor : base;
+                atualizarKpiCofresPainel({
+                    totalBase: base,
+                    totalCdi: totalCdi,
+                    totalSem: totalSem,
+                    proj12: proj12
+                });
+
+            }).catch(()=> {
+                const el = document.getElementById('chart-pizza-despesas');
+                if (el) el.innerHTML = '<div class="erro">Erro ao carregar gráficos</div>';
+            });
         }
 
         // ==================== FINANCEIRO ====================
@@ -2505,6 +2698,42 @@
                     combo.appendChild(option);
                 });
             }
+
+            // Toggle campos específicos de Cofre
+            const vencGrupo = document.getElementById('vencimento-grupo');
+            const cofreOpcoes = document.getElementById('cofre-opcoes');
+            const cofreCdi = document.getElementById('cofre-cdi-grupo');
+            const categoriaGrupo = document.getElementById('categoria').closest('.form-group');
+            const pagoGrupo = document.getElementById('pago').closest('.form-group');
+            const dataPagamentoGrupo = document.getElementById('data-pagamento-grupo');
+            const recorrenteGrupo = document.getElementById('recorrente').closest('.form-group');
+            const parceladoGrupo = document.getElementById('parcelado') ? document.getElementById('parcelado').closest('.form-group') : null;
+            if (tipo === 'cofre') {
+                if (vencGrupo) vencGrupo.style.display = 'none';
+                if (cofreOpcoes) cofreOpcoes.style.display = 'block';
+                if (cofreCdi) cofreCdi.style.display = document.getElementById('cofre-aplicar-cdi').checked ? 'block' : 'none';
+                if (categoriaGrupo) categoriaGrupo.style.display = 'none';
+                if (pagoGrupo) pagoGrupo.style.display = 'none';
+                if (dataPagamentoGrupo) dataPagamentoGrupo.style.display = 'none';
+                if (recorrenteGrupo) recorrenteGrupo.style.display = 'none';
+                if (parceladoGrupo) parceladoGrupo.style.display = 'none';
+            } else {
+                if (vencGrupo) vencGrupo.style.display = 'block';
+                if (cofreOpcoes) cofreOpcoes.style.display = 'none';
+                if (cofreCdi) cofreCdi.style.display = 'none';
+                const chk = document.getElementById('cofre-aplicar-cdi');
+                if (chk) chk.checked = false;
+                if (categoriaGrupo) categoriaGrupo.style.display = 'block';
+                if (pagoGrupo) pagoGrupo.style.display = 'block';
+                if (recorrenteGrupo) recorrenteGrupo.style.display = 'flex';
+                if (parceladoGrupo) parceladoGrupo.style.display = 'flex';
+            }
+        }
+
+        function toggleCampoCDI() {
+            const chk = document.getElementById('cofre-aplicar-cdi');
+            const grupo = document.getElementById('cofre-cdi-grupo');
+            if (grupo) grupo.style.display = chk && chk.checked ? 'block' : 'none';
         }
 
         function toggleDataPagamento() {
@@ -2529,17 +2758,32 @@
             const descricao = document.getElementById('descricao').value;
             const valor = document.getElementById('valor').value;
             const categoria = document.getElementById('categoria').value;
-            const vencimento = document.getElementById('vencimento').value;
+            const vencimentoInformado = document.getElementById('vencimento').value;
             const pago = document.getElementById('pago').checked;
             const data_pagamento = document.getElementById('data_pagamento').value;
             const observacao = document.getElementById('observacao').value;
+            const aplicar_cdi = document.getElementById('cofre-aplicar-cdi') ? document.getElementById('cofre-aplicar-cdi').checked : false;
+            const percent_cdi = document.getElementById('cofre-cdi-percent') ? parseFloat(document.getElementById('cofre-cdi-percent').value || PICPAY_CDI_DEFAULT) : PICPAY_CDI_DEFAULT;
+            const cdi_anual_calc = aplicar_cdi ? (percent_cdi/100) * CDI_BASE_ANUAL : 0;
+            const hojeISO = new Date().toISOString().slice(0, 10);
+            const vencimentoParaEnvio = tipo === 'cofre' ? (vencimentoInformado || hojeISO) : vencimentoInformado;
 
             const msgDiv = document.getElementById('msg-form');
 
-            if (!tipo || !descricao || !valor || !vencimento) {
+            if (!tipo || !descricao || !valor || !vencimentoParaEnvio) {
                 msgDiv.innerHTML = '<div class="erro">Preencha todos os campos obrigatórios!</div>';
                 return;
             }
+
+            const observacaoPayload = (tipo === 'cofre')
+                ? montarObservacaoCofre({
+                    nota: observacao,
+                    aplicar_cdi,
+                    percent_cdi: aplicar_cdi ? percent_cdi : 0,
+                    cdi_anual: aplicar_cdi ? cdi_anual_calc : 0,
+                    fonte: aplicar_cdi ? 'picpay' : 'manual'
+                })
+                : observacao;
 
             // coletar opções de recorrência / parcelamento
             const recorrente = document.getElementById('recorrente').checked;
@@ -2553,18 +2797,24 @@
                     tipo: tipo,
                     descricao: descricao,
                     valor: parseFloat(valor),
-                    categoria: categoria,
-                    vencimento: vencimento,
-                    pago: pago,
-                    data_pagamento: pago ? data_pagamento : null,
-                    observacao: observacao,
-                    recorrente: recorrente,
-                    parcelado: parcelado,
-                    parcelas_total: parcelas_total ? parseInt(parcelas_total) : undefined
+                    categoria: (tipo === 'cofre') ? '' : categoria,
+                    vencimento: vencimentoParaEnvio,
+                    pago: (tipo === 'cofre') ? false : pago,
+                    data_pagamento: (tipo === 'cofre') ? null : (pago ? data_pagamento : null),
+                    observacao: observacaoPayload,
+                    recorrente: (tipo === 'cofre') ? false : recorrente,
+                    parcelado: (tipo === 'cofre') ? false : parcelado,
+                    parcelas_total: (tipo === 'cofre') ? undefined : (parcelas_total ? parseInt(parcelas_total) : undefined),
+                    aplicar_cdi: (tipo === 'cofre') ? aplicar_cdi : undefined,
+                    percent_cdi: (tipo === 'cofre' && aplicar_cdi) ? percent_cdi : undefined,
+                    cdi_anual: (tipo === 'cofre' && aplicar_cdi) ? cdi_anual_calc : undefined
                 })
             })
             .then(response => response.json())
             .then(data => {
+                    if (tipo === 'cofre') {
+                        console.log('Cofre criado:', data);
+                    }
                 msgDiv.innerHTML = '<div class="sucesso">Transação adicionada com sucesso!</div>';
                 document.getElementById('tipo').value = '';
                 document.getElementById('descricao').value = '';
@@ -2577,6 +2827,11 @@
                 document.getElementById('parcelado').checked = false;
                 document.getElementById('parcelas_total').value = '1';
                 document.getElementById('parcelas_total').disabled = true;
+                const cofreCdiChk = document.getElementById('cofre-aplicar-cdi');
+                if (cofreCdiChk) cofreCdiChk.checked = false;
+                const cofrePercent = document.getElementById('cofre-cdi-percent');
+                if (cofrePercent) cofrePercent.value = '';
+                toggleCampoCDI();
                 toggleDataPagamento();
 
                 carregarTransacoes();
@@ -2595,8 +2850,8 @@
             const ganhosPagosEl = document.getElementById('ganhos-pagos');
             const despesasPendentesEl = document.getElementById('despesas-pendentes');
             const despesasPagasEl = document.getElementById('despesas-pagas');
-            const cofresPendentesEl = document.getElementById('cofres-pendentes');
-            const cofresPagosEl = document.getElementById('cofres-pagos');
+            const cofresRentaveisEl = document.getElementById('cofres-rentaveis');
+            const cofresSimplesEl = document.getElementById('cofres-simples');
             const saldoElemento = document.getElementById('transacoes-saldo');
             if (!ganhosPendentesEl || !ganhosPagosEl || !despesasPendentesEl || !despesasPagasEl || !saldoElemento) return;
 
@@ -2627,19 +2882,29 @@
 
                     window.transacoesCache = {};
                     transacoes.forEach(function(t) {
+                        enriquecerTransacaoCofre(t);
                         window.transacoesCache[t.id] = t;
                     });
 
-                    const ganhos = transacoes.filter(t => t.tipo === 'ganho');
-                    const despesas = transacoes.filter(t => t.tipo === 'despesa');
-                    const cofres = transacoes.filter(t => t.tipo === 'cofre');
+                    const ganhos = [];
+                    const despesas = [];
+                    const cofres = [];
+                    transacoes.forEach(function(t) {
+                        const tipo = (t.tipo || '').toLowerCase();
+                        if (tipo === 'ganho') ganhos.push(t);
+                        else if (tipo === 'despesa') despesas.push(t);
+                        else if (tipo === 'cofre' || tipo === 'investimento') {
+                            t.tipo = 'cofre';
+                            cofres.push(t);
+                        }
+                    });
 
                     const ganhosPendentes = ganhos.filter(t => !t.pago);
                     const ganhosPagos = ganhos.filter(t => t.pago);
                     const despesasPendentes = despesas.filter(t => !t.pago);
                     const despesasPagas = despesas.filter(t => t.pago);
-                    const cofresPendentes = cofres.filter(t => !t.pago);
-                    const cofresPagos = cofres.filter(t => t.pago);
+                    const cofresRentaveis = cofres.filter(ehCofreComRendimento);
+                    const cofresSimples = cofres.filter(t => !ehCofreComRendimento(t));
 
                     const ganhosTotal = ganhos.reduce((s, t) => s + t.valor, 0);
                     const despesasTotal = despesas.reduce((s, t) => s + t.valor, 0);
@@ -2656,9 +2921,9 @@
                     renderizarListaTransacoes('ganhos-pagos', ganhosPagos, 'Nenhum ganho recebido');
                     renderizarListaTransacoes('despesas-pendentes', despesasPendentes, 'Nenhuma despesa pendente');
                     renderizarListaTransacoes('despesas-pagas', despesasPagas, 'Nenhuma despesa paga');
-                    if (cofresPendentesEl && cofresPagosEl) {
-                        renderizarListaTransacoes('cofres-pendentes', cofresPendentes, 'Nenhum cofre pendente');
-                        renderizarListaTransacoes('cofres-pagos', cofresPagos, 'Nenhum cofre finalizado');
+                    if (cofresRentaveisEl && cofresSimplesEl) {
+                        renderizarListaTransacoes('cofres-rentaveis', cofresRentaveis, 'Nenhum cofre com rendimento ativo');
+                        renderizarListaTransacoes('cofres-simples', cofresSimples, 'Nenhum cofre sem rendimento');
                     }
                 })
                 .catch(err => {
@@ -2667,8 +2932,8 @@
                     ganhosPagosEl.innerHTML = '<div class="erro">Erro ao carregar ganhos recebidos</div>';
                     despesasPendentesEl.innerHTML = '<div class="erro">Erro ao carregar despesas pendentes</div>';
                     despesasPagasEl.innerHTML = '<div class="erro">Erro ao carregar despesas pagas</div>';
-                    if (cofresPendentesEl) cofresPendentesEl.innerHTML = '<div class="erro">Erro ao carregar cofres pendentes</div>';
-                    if (cofresPagosEl) cofresPagosEl.innerHTML = '<div class="erro">Erro ao carregar cofres finalizados</div>';
+                    if (cofresRentaveisEl) cofresRentaveisEl.innerHTML = '<div class="erro">Erro ao carregar cofres com rendimento</div>';
+                    if (cofresSimplesEl) cofresSimplesEl.innerHTML = '<div class="erro">Erro ao carregar cofres sem rendimento</div>';
                 });
         }
 
@@ -2682,10 +2947,19 @@
         }
 
         function criarCartaoKanban(t) {
-            const tipoClass = t.tipo === 'despesa' ? 'despesa' : 'ganho';
-            const sinal = t.tipo === 'despesa' ? '-' : '+';
-            const classeCard = t.pago ? 'kanban-card pago' : 'kanban-card';
-            const categoria = t.categoria || '—';
+            const tipo = (t.tipo || '').toLowerCase();
+            const tipoClass = tipo === 'despesa' ? 'despesa' : (tipo === 'cofre' ? 'cofre' : 'ganho');
+            const sinal = tipo === 'despesa' ? '-' : '+';
+            const classeCard = t.pago && tipo !== 'cofre' ? 'kanban-card pago' : 'kanban-card';
+            const categoria = tipo === 'cofre'
+                ? (t.observacao && t.observacao.trim() ? t.observacao.trim() : 'Cofre / Investimento')
+                : (t.categoria || '—');
+            const metaIcon = tipo === 'cofre' ? '🐷' : '🏷️';
+            const cofreBadge = tipo === 'cofre'
+                ? ('<div style="margin-top:4px; font-size:0.7em; font-weight:600; color:' + (ehCofreComRendimento(t) ? '#0074D9' : '#64748b') + ';">' + (ehCofreComRendimento(t)
+                    ? 'Rende ' + (t._cofreInfo.percent_cdi || PICPAY_CDI_DEFAULT) + '% do CDI'
+                    : 'Sem rendimento automático') + '</div>')
+                : '';
             const toggleIcon = t.pago ? '↩️' : '✓';
             const toggleLabel = t.pago ? 'Desfazer pagamento' : 'Marcar como pago';
 
@@ -2697,12 +2971,12 @@
                             '<span class="valor-texto">' + sinal + 'R$ ' + t.valor.toFixed(2) + '</span>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="kanban-card-meta-categoria">🏷️ ' + categoria + '</div>' +
+                    '<div class="kanban-card-meta-categoria">' + metaIcon + ' ' + categoria + '</div>' + cofreBadge +
                 '</div>' +
                 '<div class="kanban-card-acoes">' +
                     '<button class="kanban-btn kanban-btn-ver" aria-label="Ver detalhes" onclick="verDetalhesTransacao(' + t.id + ')">👁️</button>' +
                     '<button class="kanban-btn kanban-btn-editar" aria-label="Editar" onclick="abrirEdicao(' + t.id + ')">✏️</button>' +
-                    '<button class="kanban-btn kanban-btn-marcar" aria-label="' + toggleLabel + '" onclick="marcarPago(' + t.id + ', ' + !t.pago + ')">' + toggleIcon + '</button>' +
+                    (tipo === 'cofre' ? '' : '<button class="kanban-btn kanban-btn-marcar" aria-label="' + toggleLabel + '" onclick="marcarPago(' + t.id + ', ' + !t.pago + ')">' + toggleIcon + '</button>') +
                     '<button class="kanban-btn kanban-btn-deletar" aria-label="Excluir" onclick="deletarTransacao(' + t.id + ')">🗑️</button>' +
                 '</div>' +
             '</div>';
@@ -2712,6 +2986,7 @@
             const cache = window.transacoesCache || {};
             const dados = cache[id];
             if (dados) {
+                enriquecerTransacaoCofre(dados);
                 preencherModalDetalhes(dados);
                 return;
             }
@@ -2719,6 +2994,7 @@
             fetch('/api/transacoes/' + id)
                 .then(response => response.json())
                 .then(transacao => {
+                    enriquecerTransacaoCofre(transacao);
                     window.transacoesCache = window.transacoesCache || {};
                     window.transacoesCache[id] = transacao;
                     preencherModalDetalhes(transacao);
@@ -2732,6 +3008,21 @@
             document.getElementById('detalhe-categoria').textContent = t.categoria || '—';
             document.getElementById('detalhe-vencimento').textContent = t.vencimento ? new Date(t.vencimento).toLocaleDateString('pt-BR') : '—';
             document.getElementById('detalhe-observacao').textContent = t.observacao ? t.observacao : 'Sem observação.';
+            const blocoProj = document.getElementById('detalhe-cofre-projecao');
+            const textoProj = document.getElementById('detalhe-cofre-texto');
+            if (blocoProj && textoProj) {
+                if (ehCofreComRendimento(t)) {
+                    const proj = calcularProjecaoPicPay(Number(t.valor || 0), t._cofreInfo || {});
+                    blocoProj.style.display = 'block';
+                    textoProj.innerHTML = 'Base R$ ' + Number(t.valor || 0).toFixed(2) + ' → 30 dias: <strong>R$ ' + proj.total.toFixed(2) + '</strong> (+' + proj.ganho.toFixed(2) + ') usando ' + 
+                        (t._cofreInfo.percent_cdi || PICPAY_CDI_DEFAULT) + '% do CDI com liquidez diária (PicPay anuncia 102% do CDI para a conta rendendo todo dia).';
+                } else if ((t.tipo || '').toLowerCase() === 'cofre') {
+                    blocoProj.style.display = 'block';
+                    textoProj.textContent = 'Este cofre está sem rendimento automático. Ative o CDI (PicPay 102% do CDI com liquidez diária) para ver a projeção.';
+                } else {
+                    blocoProj.style.display = 'none';
+                }
+            }
             document.getElementById('modal-detalhes').classList.add('active');
         }
 
@@ -2774,6 +3065,7 @@
             fetch('/api/transacoes/' + id)
                 .then(response => response.json())
                 .then(t => {
+                    enriquecerTransacaoCofre(t);
                     document.getElementById('modal-tipo').value = t.tipo;
                     document.getElementById('modal-descricao').value = t.descricao;
                     document.getElementById('modal-valor').value = t.valor;
@@ -2813,6 +3105,37 @@
                 });
                 combo.value = valorAtual;
             }
+
+            // Toggle campos específicos no modal para Cofre
+            const vencGrupo = document.getElementById('modal-vencimento-grupo');
+            const cofreOpcoes = document.getElementById('modal-cofre-opcoes');
+            const cofreCdi = document.getElementById('modal-cofre-cdi-grupo');
+            const categoriaGrupo = document.getElementById('modal-categoria').closest('.form-group');
+            const pagoGrupo = document.getElementById('modal-pago').closest('.form-group');
+            const dataPagamentoGrupo = document.getElementById('modal-data-pagamento-grupo');
+            if (tipo === 'cofre') {
+                if (vencGrupo) vencGrupo.style.display = 'none';
+                if (cofreOpcoes) cofreOpcoes.style.display = 'block';
+                if (cofreCdi) cofreCdi.style.display = document.getElementById('modal-cofre-aplicar-cdi').checked ? 'block' : 'none';
+                if (categoriaGrupo) categoriaGrupo.style.display = 'none';
+                if (pagoGrupo) pagoGrupo.style.display = 'none';
+                if (dataPagamentoGrupo) dataPagamentoGrupo.style.display = 'none';
+            } else {
+                if (vencGrupo) vencGrupo.style.display = 'block';
+                if (cofreOpcoes) cofreOpcoes.style.display = 'none';
+                if (cofreCdi) cofreCdi.style.display = 'none';
+                const chk = document.getElementById('modal-cofre-aplicar-cdi');
+                if (chk) chk.checked = false;
+                if (categoriaGrupo) categoriaGrupo.style.display = 'block';
+                if (pagoGrupo) pagoGrupo.style.display = 'block';
+                if (dataPagamentoGrupo) dataPagamentoGrupo.style.display = document.getElementById('modal-pago').checked ? 'block' : 'none';
+            }
+        }
+
+        function toggleCampoCDIModal() {
+            const chk = document.getElementById('modal-cofre-aplicar-cdi');
+            const grupo = document.getElementById('modal-cofre-cdi-grupo');
+            if (grupo) grupo.style.display = chk && chk.checked ? 'block' : 'none';
         }
 
         function toggleDataPagamentoModal() {
@@ -2832,13 +3155,29 @@
             const pago = document.getElementById('modal-pago').checked;
             const data_pagamento = document.getElementById('modal-data_pagamento').value;
             const observacao = document.getElementById('modal-observacao').value;
+            const aplicarCdiModal = document.getElementById('modal-cofre-aplicar-cdi') ? document.getElementById('modal-cofre-aplicar-cdi').checked : false;
+            const percentCdiModalInput = document.getElementById('modal-cofre-cdi-percent');
+            const percentCdiModal = percentCdiModalInput ? parseFloat(percentCdiModalInput.value || PICPAY_CDI_DEFAULT) : PICPAY_CDI_DEFAULT;
+            const cdiAnualModal = aplicarCdiModal ? (percentCdiModal/100)*CDI_BASE_ANUAL : 0;
+            const hojeISO = new Date().toISOString().slice(0,10);
+            const vencimentoParaEnvio = tipo === 'cofre' ? (vencimento || hojeISO) : vencimento;
 
             const msgDiv = document.getElementById('msg-modal');
 
-            if (!tipo || !descricao || !valor || !vencimento) {
+            if (!tipo || !descricao || !valor || !vencimentoParaEnvio) {
                 msgDiv.innerHTML = '<div class="erro">Preencha todos os campos obrigatórios!</div>';
                 return;
             }
+
+            const observacaoPayload = (tipo === 'cofre')
+                ? montarObservacaoCofre({
+                    nota: observacao,
+                    aplicar_cdi: aplicarCdiModal,
+                    percent_cdi: aplicarCdiModal ? percentCdiModal : 0,
+                    cdi_anual: aplicarCdiModal ? cdiAnualModal : 0,
+                    fonte: aplicarCdiModal ? 'picpay' : 'manual'
+                })
+                : observacao;
 
             fetch('/api/transacoes/' + transacaoAtualId, {
                 method: 'PUT',
@@ -2847,11 +3186,14 @@
                     tipo: tipo,
                     descricao: descricao,
                     valor: parseFloat(valor),
-                    categoria: categoria,
-                    vencimento: vencimento,
-                    pago: pago,
-                    data_pagamento: pago ? data_pagamento : null,
-                    observacao: observacao
+                    categoria: (tipo === 'cofre') ? '' : categoria,
+                    vencimento: vencimentoParaEnvio,
+                    pago: (tipo === 'cofre') ? false : pago,
+                    data_pagamento: (tipo === 'cofre') ? null : (pago ? data_pagamento : null),
+                    observacao: observacaoPayload,
+                    aplicar_cdi: undefined,
+                    percent_cdi: undefined,
+                    cdi_anual: undefined
                 })
             })
             .then(response => response.json())
