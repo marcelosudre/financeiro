@@ -145,32 +145,33 @@
         /* ==================== ABAS INTERNAS ====================*/
         .tabs-interno {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 8px;
-            margin-bottom: 16px;
+            /* Forçar 4 colunas (uma por botão) quando couber — garante uma linha única em muitos dispositivos */
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            margin-bottom: 10px;
             background: #0d1f34;
-            padding: 6px;
-            border-radius: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+            padding: 3px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
         }
 
         .tab-btn-interno {
             border: none;
-            background: rgba(255, 255, 255, 0.04);
+            background: rgba(255, 255, 255, 0.02);
             color: #cbd5f5;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s ease;
-            border-radius: 10px;
+            transition: all 0.16s ease;
+            border-radius: 8px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 10px 8px;
-            gap: 4px;
-            min-height: 58px;
-            font-size: 0.9em;
+            padding: 4px 6px;
+            gap: 2px;
+            min-height: 36px;
+            font-size: 0.78em;
         }
 
         .tab-btn-interno span.icon {
@@ -227,6 +228,20 @@
             gap: 20px;
             justify-content: space-between;
             align-items: flex-end;
+        }
+
+        /* Centralizar o input de filtro de mês nas transações */
+        #transacoes-mes {
+            display: block;
+            margin: 6px auto 0;
+            width: 160px;
+            max-width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 420px) {
+            #transacoes-mes { width: 100%; max-width: 240px; }
         }
 
         .financeiro-transacoes .form-group {
@@ -767,7 +782,10 @@
         .transacoes-saldo-header {
             margin: 18px 0 12px;
             display: flex;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
+            gap: 8px;
         }
 
         .tabs-transacoes {
@@ -1536,13 +1554,15 @@
             }
 
             .tabs-interno {
-                grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-                padding: 8px;
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+                padding: 6px;
             }
 
             .tab-btn-interno {
-                font-size: 0.85em;
-                gap: 3px;
+                font-size: 0.82em;
+                gap: 2px;
+                padding: 8px 8px;
+                min-height: 40px;
             }
 
             .financeiro-transacoes {
@@ -1558,13 +1578,26 @@
 
             .tabs-interno {
                 flex-direction: column;
-                gap: 0;
+                gap: 6px;
             }
 
             .tab-btn-interno {
                 flex: 1 1 100%;
                 text-align: left;
-                padding: 12px;
+                padding: 8px 10px;
+                min-height: 40px;
+            }
+
+            /* Em telas muito pequenas, mostrar apenas ícone para economizar espaço */
+            @media (max-width: 420px) {
+                .tab-btn-interno { padding: 6px 8px; min-height: 36px; font-size: 0.76em; }
+                .tab-btn-interno .label { display: none; }
+                .tabs-interno { gap: 4px; }
+            }
+
+            /* Forçar 4 colunas em dispositivos móveis médios (ex: telefones largos / phablets) */
+            @media (min-width: 360px) and (max-width: 768px) {
+                .tabs-interno { grid-template-columns: repeat(4, 1fr); }
             }
 
             .lista-container {
@@ -1766,25 +1799,18 @@
             </div>
 
             <!-- ABA 2: TRANSACOES -->
-<<<<<<< HEAD
             <div id="listar-transacoes" class="tab-content-interno tab-pane-financeiro financeiro-transacoes">
                 <div class="transacoes-top">
                     <div>
                         <h3>Transações</h3>
-                        <p class="transacoes-subtitulo">Acompanhe ganhos e despesas em tempo real</p>
-                    </div>
-                    <div class="form-group">
-=======
-            <div id="listar-transacoes" class="tab-content-interno">
-                <div id="transacoes-content" class="dashboard-section">
-                    <h3>Transações</h3>
-                    <div class="form-group" style="max-width: 260px;">
->>>>>>> a15410e78a8f824a6c2916aa6e96b6a164eda5db
-                        <label for="transacoes-mes">Filtrar mês</label>
-                        <input type="month" id="transacoes-mes" onchange="carregarTransacoes()">
                     </div>
                 </div>
                 <div class="transacoes-saldo-header">
+                    <div style="width:100%; display:flex; justify-content:center;">
+                        <div class="form-group" style="max-width:260px; width:100%;">
+                            <input style="text-align:center;" type="month" id="transacoes-mes" onchange="carregarTransacoes()">
+                        </div>
+                    </div>
                     <div id="transacoes-saldo" class="kanban-totalizador saldo positivo">⚖️ Saldo do mês <strong>Carregando...</strong></div>
                 </div>
 
@@ -1823,7 +1849,7 @@
             <!-- ABA 3: CATEGORIAS (movida para Financeiro) -->
             <div id="categorias-interno" class="tab-content-interno tab-pane-financeiro">
                 <div class="card" style="margin-bottom: 20px;">
-                    <h3>Cadastrar Nova Categoria</h3>
+                    <h3>Cadastrar Categoria</h3>
                     
                     <div class="form-group">
                         <label for="cat-tipo">Tipo</label>
