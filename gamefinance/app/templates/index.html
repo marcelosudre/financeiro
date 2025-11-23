@@ -1,0 +1,3649 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎮 GameFinance - Controle Financeiro Gamer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0F0F23 0%, #1A1A2E 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #6B46C1 0%, #7C3AED 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            border-bottom: 3px solid #00FFFF;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        header p {
+            opacity: 0.85;
+            font-size: 1.1em;
+            font-weight: 300;
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            border-bottom: 3px solid #e0e0e0;
+            background: #f8f9fa;
+            gap: 0;
+        }
+
+        .tab-btn {
+            flex: 1 1 25%;
+            padding: 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover {
+            background: rgba(124, 58, 237, 0.1);
+            color: #7C3AED;
+        }
+
+        .tab-btn.active {
+            color: #7C3AED;
+            border-bottom-color: #00FFFF;
+            background: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ==================== BOTTOM NAV (MOBILE STYLE) ====================*/
+        .bottom-nav {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 70px;
+            background: #ffffff;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            display: none;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.08);
+            z-index: 1000;
+            padding: 8px 12px;
+            gap: 8px;
+        }
+
+        .bottom-nav .bottom-btn {
+            flex: 1;
+            height: 100%;
+            border: none;
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #6b7280;
+            font-weight: 600;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            min-height: 44px;
+        }
+
+        .bottom-nav .bottom-btn .icon {
+            font-size: 1.2rem;
+        }
+
+        .bottom-nav .bottom-btn.active {
+            background: linear-gradient(135deg, #001f3f 0%, #003d7a 100%);
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(0, 31, 63, 0.25);
+        }
+
+        /* ==================== ABAS INTERNAS ====================*/
+        .tabs-interno {
+            display: grid;
+            /* Forçar 4 colunas (uma por botão) quando couber — garante uma linha única em muitos dispositivos */
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            margin-bottom: 10px;
+            background: #0d1f34;
+            padding: 3px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+        }
+
+        .tab-btn-interno {
+            border: none;
+            background: rgba(255, 255, 255, 0.02);
+            color: #cbd5f5;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.16s ease;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 6px;
+            gap: 2px;
+            min-height: 36px;
+            font-size: 0.78em;
+        }
+
+        .tab-btn-interno span.icon {
+            font-size: 1.1rem;
+        }
+
+        .tab-btn-interno .label {
+            font-size: 0.82em;
+        }
+
+        .tab-btn-interno:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        .tab-btn-interno.active {
+            background: linear-gradient(135deg, #001f3f 0%, #003d7a 100%);
+            color: #fff;
+            box-shadow: 0 10px 22px rgba(0, 31, 63, 0.35);
+        }
+
+        .tab-content-interno {
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .tab-content-interno.active {
+            display: block;
+        }
+
+        .financeiro-transacoes {
+            margin: 25px -30px -30px;
+            padding: 30px;
+            background: #f7f9fc;
+            border-radius: 32px 32px 0 0;
+            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .financeiro-transacoes h3 {
+            color: #7C3AED;
+            margin-bottom: 6px;
+            font-size: 1.4em;
+        }
+
+        .transacoes-subtitulo {
+            color: #64748b;
+            font-size: 0.95em;
+            margin-bottom: 16px;
+        }
+
+        .transacoes-top {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        /* Centralizar o input de filtro de mês nas transações */
+        #transacoes-mes {
+            display: block;
+            margin: 6px auto 0;
+            width: 160px;
+            max-width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 420px) {
+            #transacoes-mes { width: 100%; max-width: 240px; }
+        }
+
+        .financeiro-transacoes .form-group {
+            margin-bottom: 0;
+            min-width: 200px;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #00d4ff;
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.1);
+        }
+
+        .card h3 {
+            color: #7C3AED;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            font-weight: 700;
+            border-bottom: 2px solid #00d4ff;
+            padding-bottom: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #7C3AED;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 0 4px rgba(0, 212, 255, 0.1);
+            background: #fafbfc;
+        }
+
+        button {
+            background: linear-gradient(135deg, #001f3f 0%, #003d7a 100%);
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(0, 31, 63, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 31, 63, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-export:hover {
+            box-shadow: 0 6px 18px rgba(0, 212, 255, 0.4);
+        }
+
+        .export-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .export-btn-group button {
+            flex: 1;
+        }
+
+        .transacoes-list {
+            margin-top: 20px;
+        }
+
+        .transacao-item {
+            background: white;
+            padding: 18px;
+            border-radius: 8px;
+            border-left: 4px solid #001f3f;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .transacao-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .transacao-item.pago {
+            opacity: 0.8;
+            border-left-color: #00a854;
+        }
+
+        .transacao-info {
+            flex: 1;
+        }
+
+        .transacao-descricao {
+            font-weight: 700;
+            color: #7C3AED;
+            margin-bottom: 5px;
+            font-size: 1.05em;
+        }
+
+        .transacao-meta {
+            font-size: 0.9em;
+            color: #999;
+        }
+
+        .transacao-valor {
+            font-size: 1.4em;
+            font-weight: 700;
+            margin: 0 15px;
+            min-width: 110px;
+            text-align: right;
+        }
+
+        .transacao-valor.despesa {
+            color: #d9534f;
+        }
+
+        .transacao-valor.ganho {
+            color: #00a854;
+        }
+
+        .transacao-acoes {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-pequeno {
+            padding: 10px 14px;
+            font-size: 0.85em;
+            width: auto;
+            min-width: 85px;
+        }
+
+        .btn-deletar {
+            background: #d9534f;
+            box-shadow: 0 4px 12px rgba(217, 83, 79, 0.3);
+        }
+
+        .btn-deletar:hover {
+            background: #c9302c;
+        }
+
+        /* ==================== KANBAN ====================*/
+        .kanban-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            justify-items: stretch;
+        }
+
+        .kanban-container > * {
+            width: 100%;
+        }
+
+        .kanban-coluna {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            min-height: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .kanban-coluna h4 {
+            color: #7C3AED;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            font-weight: 700;
+            border-bottom: 3px solid #00FFFF;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .kanban-card {
+            background: white;
+            border-left: 4px solid #00d4ff;
+            border-radius: 12px;
+            padding: 12px 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .kanban-card:hover {
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .kanban-card.pago {
+            border-left-color: #00a854;
+            opacity: 0.95;
+        }
+
+        .kanban-card-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .kanban-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .kanban-card-valor {
+            font-size: 1.05em;
+            font-weight: 700;
+            min-width: 110px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+
+        .kanban-card-valor .valor-texto {
+            color: #7C3AED;
+        }
+
+        .kanban-card-valor.despesa .valor-texto {
+            color: #d9534f;
+        }
+
+        .kanban-card-valor.ganho .valor-texto {
+            color: #00a854;
+        }
+
+        .kanban-card-desc {
+            font-weight: 700;
+            color: #7C3AED;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            flex: 1;
+        }
+
+        .kanban-card-meta-categoria {
+            font-size: 0.82em;
+            color: #666;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+        }
+
+        .kanban-card-acoes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-end;
+            align-items: center;
+            border-top: 1px solid #eef1f5;
+            padding-top: 6px;
+            margin-top: 4px;
+        }
+
+        .kanban-btn {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            font-size: 0.75em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: white;
+        }
+
+        .kanban-btn-editar {
+            background: #0099cc;
+        }
+
+        .kanban-btn-editar:hover {
+            background: #0077aa;
+        }
+
+        .kanban-btn-marcar {
+            background: #00a854;
+        }
+
+        .kanban-btn-marcar:hover {
+            background: #008844;
+        }
+
+        .kanban-btn-ver {
+            background: #5e60ce;
+        }
+
+        .kanban-btn-ver:hover {
+            background: #4a4cb0;
+        }
+
+        .kanban-btn-deletar {
+            background: #d9534f;
+        }
+
+        .kanban-btn-deletar:hover {
+            background: #c9302c;
+        }
+
+        /* ==================== KANBAN MELHORADO ====================*/
+        .kanban-resumo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+            margin-top: 20px;
+        }
+
+        .kanban-totalizador {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1em;
+            font-weight: 600;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .kanban-totalizador.ganho {
+            background: linear-gradient(135deg, #00a854 0%, #008844 100%);
+        }
+
+        .kanban-totalizador.despesa {
+            background: linear-gradient(135deg, #d9534f 0%, #c9302c 100%);
+        }
+
+        .kanban-totalizador.saldo.positivo {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+        }
+
+        .kanban-totalizador.saldo.negativo {
+            background: linear-gradient(135deg, #ff6b6b 0%, #d9534f 100%);
+        }
+
+        .kanban-totalizador strong {
+            display: block;
+            font-size: 1.4em;
+            margin-top: 8px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .kanban-secao {
+            margin-bottom: 40px;
+        }
+
+        .kanban-secao-titulo {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #7C3AED;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #00FFFF;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .kanban-coluna {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            min-height: 200px;
+            max-height: 500px;
+            overflow-y: auto;
+            display: inline-block;
+            width: calc(50% - 10px);
+            margin-right: 20px;
+            margin-bottom: 20px;
+            vertical-align: top;
+        }
+
+        .kanban-coluna:last-child {
+            margin-right: 0;
+        }
+
+        .kanban-coluna-titulo {
+            color: #7C3AED;
+            margin-bottom: 15px;
+            font-size: 1em;
+            font-weight: 700;
+            border-bottom: 3px solid #00FFFF;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .kanban-vazio {
+            text-align: center;
+            color: #999;
+            padding: 30px 20px;
+            font-style: italic;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px dashed #ddd;
+        }
+
+        .kanban-resumo-secao {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .kanban-totalizador-status {
+            padding: 12px 16px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.95em;
+            font-weight: 600;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .kanban-totalizador-status.pendente {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        }
+
+        .kanban-totalizador-status.recebido {
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+        }
+
+        .kanban-totalizador-status.pago {
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+        }
+
+        .kanban-totalizador-status strong {
+            display: block;
+            font-size: 1.2em;
+            margin-top: 6px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        /* ==================== TABELA DE TRANSAÇÕES (LISTAGEM) ====================*/
+        .transacoes-resumo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .transacoes-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border: 1px solid #e6e6e6;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            margin-bottom: 18px;
+        }
+
+        .transacoes-table th, .transacoes-table td {
+            padding: 10px 12px;
+            font-size: 0.95em;
+            text-align: left;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .transacoes-table th {
+            background: #f7fbfd;
+            color: #7C3AED;
+            font-weight: 700;
+            border-bottom: 2px solid #e9f6fb;
+        }
+
+        .transacao-valor-cell { font-weight: 700; }
+        .transacao-valor-cell.positivo { color: #00a854; }
+        .transacao-valor-cell.negativo { color: #d9534f; }
+
+        .acoes-cell { text-align: right; }
+        .acoes-cell .kanban-btn { padding: 6px 8px; font-size: 0.8em; }
+
+        /* ==================== ABAS INTERNAS DE TRANSAÇÕES ====================*/
+        .transacoes-saldo-header {
+            margin: 18px 0 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .tabs-transacoes {
+            display: flex;
+            gap: 10px;
+            background: #f4f8fb;
+            padding: 6px;
+            border-radius: 10px;
+            border: 1px solid #e2e9f1;
+        }
+
+        .tab-btn-transacao {
+            flex: 1;
+            padding: 10px 14px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #7C3AED;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn-transacao:hover {
+            background: rgba(0, 31, 63, 0.08);
+        }
+
+        .tab-btn-transacao.active {
+            background: #001f3f;
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(0, 31, 63, 0.25);
+        }
+
+        .tab-content-transacao {
+            display: none;
+            margin-top: 18px;
+        }
+
+        .tab-content-transacao.active {
+            display: block;
+        }
+
+        .transacoes-duas-colunas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 18px;
+            align-items: flex-start;
+        }
+
+        .transacoes-coluna {
+            background: #f8f9fb;
+            border: 1px solid #e2e9f1;
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 220px;
+        }
+
+        .transacoes-coluna h5 {
+            margin: 0 0 12px;
+            color: #7C3AED;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .transacoes-coluna .kanban-container {
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 0;
+        }
+
+        /* Ajuste: centralizar e padronizar largura dos cartões dentro
+           das colunas de transações (corrige desalinhamento de cartões pagos) */
+        .transacoes-coluna .kanban-container {
+            justify-items: center;
+        }
+
+        .transacoes-coluna .kanban-container > * {
+            width: auto; /* permitir centralizar com max-width */
+            min-width: 220px; /* mantém legibilidade */
+            max-width: 420px; /* evita cartões muito largos e garante uniformidade */
+            box-sizing: border-box;
+        }
+
+        /* === Ajustes para melhorar aproveitamento de espaço na aba Financeiro === */
+        /* Reduz o padding lateral dos cards dentro das abas internas para aumentar área útil */
+        .tab-content-interno .card {
+            padding: 14px 16px;
+        }
+
+        /* Menos espaçamento interno nas colunas de transações, permite mais largura para os kanban cards */
+        .transacoes-coluna {
+            padding: 12px;
+        }
+
+        /* Aumenta largura mínima das colunas para usar melhor o espaço em telas maiores */
+        .transacoes-duas-colunas {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        /* Garante que o conteúdo interno aproveite toda a largura disponível */
+        .tab-content-transacao, .transacoes-duas-colunas, .transacoes-coluna {
+            width: 100%;
+        }
+
+        /* Remover bordas/margens do container de transações para aproveitar 100% da largura */
+        #transacoes-content.dashboard-section {
+            border: none;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            box-shadow: none;
+        }
+
+        /* ==================== MODAL EDIÇÃO ====================*/
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .detalhes-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .detalhe-item label {
+            display: block;
+            font-weight: 700;
+            color: #7C3AED;
+            margin-bottom: 4px;
+        }
+
+        .detalhe-item p {
+            margin: 0;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #00d4ff;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h3 {
+            color: #7C3AED;
+            font-size: 1.3em;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #999;
+            width: auto;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            color: #7C3AED;
+        }
+
+        .modal-acoes {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-acoes button {
+            flex: 1;
+        }
+
+        .btn-cancelar {
+            background: #6c757d !important;
+        }
+
+        .btn-cancelar:hover {
+            background: #5a6268 !important;
+        }
+
+        /* ==================== LISTA DE COMPRAS ====================*/
+        .lista-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .categorias-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .categoria-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .categoria-card:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .categoria-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .categoria-icone {
+            font-size: 2em;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .categoria-detalhes {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .categoria-nome {
+            font-size: 1em;
+            font-weight: 700;
+            color: #7C3AED;
+        }
+
+        .categoria-cor {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #e0e0e0;
+        }
+
+        .categoria-acoes {
+            display: flex;
+            gap: 6px;
+        }
+
+        .cat-btn {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.2s ease;
+            color: white;
+        }
+
+        .cat-btn-editar {
+            background: #0099cc;
+        }
+
+        .cat-btn-editar:hover {
+            background: #0077aa;
+        }
+
+        .cat-btn-deletar {
+            background: #d9534f;
+        }
+
+        .cat-btn-deletar:hover {
+            background: #c9302c;
+        }
+
+        .lista-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 22px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .lista-card:hover {
+            border-color: #00d4ff;
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.1);
+        }
+
+        .lista-titulo {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #7C3AED;
+            margin-bottom: 15px;
+            word-break: break-word;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #00d4ff;
+        }
+
+        .lista-itens {
+            list-style: none;
+            margin-bottom: 15px;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .lista-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 3px solid #001f3f;
+            transition: all 0.2s ease;
+        }
+
+        .lista-item:hover {
+            background: rgba(124, 58, 237, 0.1);
+        }
+
+        .lista-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: #00d4ff;
+        }
+
+        .lista-item.concluido {
+            opacity: 0.6;
+            background: #f0f0f0;
+        }
+
+        .lista-item.concluido label {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        .lista-item label {
+            flex: 1;
+            cursor: pointer;
+            color: #7C3AED;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .item-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .item-input-group input {
+            flex: 1;
+        }
+
+        .item-input-group button {
+            width: auto;
+            min-width: 80px;
+            padding: 12px 15px;
+        }
+
+        .lista-acoes {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filtros {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filtros input, .filtros select {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #001f3f;
+            color: white;
+            border-radius: 14px;
+            font-size: 0.8em;
+            margin-left: 8px;
+            font-weight: 600;
+        }
+
+        .badge.pago {
+            background: #00a854;
+        }
+
+        .vencimento-alerta {
+            color: #d9534f;
+            font-weight: 700;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+        }
+
+        .empty-state p {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .metricas {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metrica {
+            background: white;
+            padding: 18px;
+            border-radius: 8px;
+            border-left: 4px solid #001f3f;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .metrica label {
+            display: block;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .metrica .valor {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #7C3AED;
+        }
+
+        .metrica.positivo .valor {
+            color: #00a854;
+        }
+
+        .metrica.negativo .valor {
+            color: #d9534f;
+        }
+
+        /* ==================== DASHBOARD ====================*/
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background: linear-gradient(135deg, #001f3f 0%, #003d7a 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 31, 63, 0.2);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 31, 63, 0.3);
+        }
+
+        .kpi-card h4 {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-valor {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 5px;
+            word-break: break-word;
+        }
+
+        .kpi-card.positivo {
+            background: linear-gradient(135deg, #00a854 0%, #00cc66 100%);
+        }
+
+        .kpi-card.negativo {
+            background: linear-gradient(135deg, #d9534f 0%, #e74c3c 100%);
+        }
+
+        .kpi-card.neutro {
+            background: linear-gradient(135deg, #0099cc 0%, #00d4ff 100%);
+        }
+
+        .dashboard-section {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-section:hover {
+            border-color: #00d4ff;
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.1);
+        }
+
+        .dashboard-section h3 {
+            color: #7C3AED;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            font-weight: 700;
+            border-bottom: 2px solid #00d4ff;
+            padding-bottom: 12px;
+        }
+
+        .simple-chart {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .chart-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .bar {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(180deg, #00d4ff 0%, #001f3f 100%);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 212, 255, 0.2);
+        }
+
+        .bar:hover {
+            transform: scaleY(1.05);
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+        }
+
+        .chart-bar label {
+            font-size: 0.85em;
+            color: #666;
+            margin: 0;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .chart-bar .valor {
+            font-size: 0.8em;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .tabela-simples {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .tabela-simples th {
+            background: #001f3f;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .tabela-simples td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .tabela-simples tr:hover {
+            background: #f0f5fa;
+        }
+
+        .tabela-simples tr:last-child td {
+            border-bottom: none;
+        }
+
+        .listagem-destaque {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .item-destaque {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #001f3f;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .item-destaque:hover {
+            border-left-color: #00d4ff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .item-destaque-label {
+            font-size: 0.85em;
+            color: #999;
+            margin-bottom: 5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .item-destaque-valor {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #7C3AED;
+        }
+
+        .insight {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 212, 255, 0.2) 100%);
+            border-left: 4px solid #00d4ff;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 12px 0;
+            font-size: 0.95em;
+            color: #333;
+        }
+
+        .insight strong {
+            color: #7C3AED;
+        }
+
+        .filtro-chart {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filtro-chart select {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filtro-chart select:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 0 4px rgba(0, 212, 255, 0.1);
+        }
+
+        .filtro-chart label {
+            font-weight: 600;
+            color: #7C3AED;
+            margin: 0;
+            font-size: 0.95em;
+        }
+
+        .erro {
+            background: #fee;
+            border: 2px solid #d9534f;
+            color: #c9302c;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .sucesso {
+            background: #efe;
+            border: 2px solid #5cb85c;
+            color: #00a854;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 20px 110px;
+            }
+
+            .metricas {
+                grid-template-columns: 1fr;
+            }
+
+            .transacao-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .transacao-valor {
+                margin-top: 10px;
+                width: 100%;
+                text-align: left;
+            }
+
+            .transacao-acoes {
+                width: 100%;
+                margin-top: 10px;
+            }
+
+            .tabs {
+                display: none;
+            }
+
+            .bottom-nav {
+                display: flex;
+            }
+
+            .container {
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .tabs-interno {
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+                padding: 6px;
+            }
+
+            .tab-btn-interno {
+                font-size: 0.82em;
+                gap: 2px;
+                padding: 8px 8px;
+                min-height: 40px;
+            }
+
+            .financeiro-transacoes {
+                margin: 10px -20px -20px;
+                padding: 24px 18px 110px;
+            }
+
+            .tab-btn {
+                flex: 1 1 100%;
+                text-align: left;
+                padding: 15px;
+            }
+
+            .tabs-interno {
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .tab-btn-interno {
+                flex: 1 1 100%;
+                text-align: left;
+                padding: 8px 10px;
+                min-height: 40px;
+            }
+
+            /* Em telas muito pequenas, mostrar apenas ícone para economizar espaço */
+            @media (max-width: 420px) {
+                .tab-btn-interno { padding: 6px 8px; min-height: 36px; font-size: 0.76em; }
+                .tab-btn-interno .label { display: none; }
+                .tabs-interno { gap: 4px; }
+            }
+
+            /* Forçar 4 colunas em dispositivos móveis médios (ex: telefones largos / phablets) */
+            @media (min-width: 360px) and (max-width: 768px) {
+                .tabs-interno { grid-template-columns: repeat(4, 1fr); }
+            }
+
+            .lista-container {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .simple-chart {
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            }
+
+            .kanban-container {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            }
+
+            .transacoes-coluna .kanban-container {
+                grid-template-columns: 1fr;
+            }
+
+            .kanban-coluna {
+                display: block;
+                width: 100% !important;
+                margin-right: 0 !important;
+                margin-bottom: 20px;
+            }
+
+            .kanban-resumo {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+            }
+        }
+
+        /* Responsividade móvel adicional */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+        }
+
+        .transacoes-table {
+            min-width: 680px; /* permite scroll em telas pequenas */
+        }
+
+        /* Ajustes finos para telas muito pequenas */
+        @media (max-width: 480px) {
+            .container { padding: 12px; }
+            .transacoes-table th, .transacoes-table td { padding: 8px; font-size: 0.85em; }
+            .tabela-simples th, .tabela-simples td { padding: 8px; font-size: 0.85em; }
+            .kanban-card { padding: 12px; }
+            .chart-bar .bar { max-height: 120px; }
+            .simple-chart { gap: 8px; }
+            header { padding: 24px 16px; }
+            header h1 { font-size: 1.6em; }
+            .tab-btn { padding: 12px; }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00d4ff;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #001f3f;
+        }
+    </style>
+</head>
+<body>
+    <!-- Calendar removed per user request -->
+
+    <div class="container">
+        <!-- Header removido conforme solicitação do usuário -->
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="dashboard" onclick="abrirAba(event, 'dashboard')">🏆 Dashboard</button>
+            <button class="tab-btn" data-tab="financeiro" onclick="abrirAba(event, 'financeiro')">🎮 Financeiro Gamer</button>
+            <button class="tab-btn" data-tab="lista" onclick="abrirAba(event, 'lista')">🎒 Inventário</button>
+        </div>
+
+        <nav class="bottom-nav" aria-label="Menu principal">
+            <button class="bottom-btn active" data-tab="dashboard" onclick="abrirAba(event, 'dashboard')">
+                <span class="icon">🏠</span>
+                <span class="label">Home</span>
+            </button>
+            <button class="bottom-btn" data-tab="financeiro" onclick="abrirAba(event, 'financeiro')">
+                <span class="icon">💰</span>
+                <span class="label">Gamer</span>
+            </button>
+            <button class="bottom-btn" data-tab="lista" onclick="abrirAba(event, 'lista')">
+                <span class="icon">📋</span>
+                <span class="label">Inventário</span>
+            </button>
+        </nav>
+
+        <!-- ==================== ABA DASHBOARD ==================== -->
+        <div id="dashboard" class="tab-content active">
+            <div id="dashboard-content">
+                <div class="empty-state"><p>Carregando dashboard...</p></div>
+            </div>
+        </div>
+
+        <!-- ==================== ABA FINANCEIRO ==================== -->
+        <div id="financeiro" class="tab-content">
+            <div class="tabs-interno">
+                <button class="tab-btn-interno active" onclick="abrirAbaInterna(event, 'adicionar-transacao')">
+                    <span class="icon">➕</span>
+                    <span class="label">Adicionar</span>
+                </button>
+                <button class="tab-btn-interno" onclick="abrirAbaInterna(event, 'listar-transacoes')">
+                    <span class="icon">📈</span>
+                    <span class="label">Transações</span>
+                </button>
+                <button class="tab-btn-interno" onclick="abrirAbaInterna(event, 'categorias-interno')">
+                    <span class="icon">🏷️</span>
+                    <span class="label">Categorias</span>
+                </button>
+                <button class="tab-btn-interno" onclick="abrirAbaInterna(event, 'relatorio-interno')">
+                    <span class="icon">📑</span>
+                    <span class="label">Relatórios</span>
+                </button>
+            </div>
+
+            <!-- ABA 1: ADICIONAR TRANSAÇÃO -->
+            <div id="adicionar-transacao" class="tab-content-interno tab-pane-financeiro active">
+                <div class="card">
+                    <h3>Adicionar Transação</h3>
+                    <div id="msg-form"></div>
+
+                    <div class="form-group">
+                        <label for="tipo">Tipo</label>
+                        <select id="tipo" onchange="atualizarCategoriasCombo()">
+                            <option value="">-- Selecionar --</option>
+                            <option value="despesa">💰 Gasto de Gold</option>
+                            <option value="ganho">⚡ XP Ganho</option>
+                            <option value="cofre">Cofre</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="descricao">Descrição</label>
+                        <input type="text" id="descricao" placeholder="Ex: Aluguel, Salário...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="observacao">Observação</label>
+                        <textarea id="observacao" rows="2" placeholder="Notas adicionais (opcional)"></textarea>
+                    </div>
+
+                    <div class="form-group" style="display:flex; gap:8px; align-items:center;">
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                            <input type="checkbox" id="recorrente" onchange="toggleRecorrente()" style="width:18px; height:18px; cursor:pointer; accent-color:#00d4ff;">
+                            <span style="font-weight:600;">Despesa Fixa</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group" style="display:flex; gap:8px; align-items:center;">
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                            <input type="checkbox" id="parcelado" onchange="toggleParcelado()" style="width:18px; height:18px; cursor:pointer; accent-color:#00d4ff;"> 
+                            <span style="font-weight:600;">Parcelado</span>
+                        </label>
+                        <select id="parcelas_total" style="width:80px; font-size:0.9em; padding:4px;" disabled>
+                            <option value="1">1x</option>
+                            <option value="2">2x</option>
+                            <option value="3">3x</option>
+                            <option value="4">4x</option>
+                            <option value="5">5x</option>
+                            <option value="6">6x</option>
+                            <option value="7">7x</option>
+                            <option value="8">8x</option>
+                            <option value="9">9x</option>
+                            <option value="10">10x</option>
+                            <option value="11">11x</option>
+                            <option value="12">12x</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="valor">Valor</label>
+                        <input type="number" id="valor" placeholder="0.00" step="0.01" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="categoria">Categoria</label>
+                        <select id="categoria">
+                            <option value="">-- Sem categoria --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="vencimento-grupo">
+                        <label for="vencimento">Data de Vencimento</label>
+                        <input type="date" id="vencimento">
+                    </div>
+
+                    <div class="form-group" id="cofre-opcoes" style="display:none;">
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                            <input type="checkbox" id="cofre-aplicar-cdi" onchange="toggleCampoCDI()" style="width:18px; height:18px; accent-color:#00d4ff;">
+                            <span style="font-weight:600;">Aplicar rendimento CDI?</span>
+                        </label>
+                    </div>
+                    <div class="form-group" id="cofre-cdi-grupo" style="display:none;">
+                        <label for="cofre-cdi-percent">Percentual sobre CDI (%)</label>
+                        <input type="number" id="cofre-cdi-percent" step="0.01" min="0" placeholder="Ex: 102">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pago" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="pago" onchange="toggleDataPagamento()" style="width: 24px; height: 24px; cursor: pointer; accent-color: #00d4ff;">
+                            <span style="font-weight: 600;">Já foi pago?</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group" id="data-pagamento-grupo" style="display: none;">
+                        <label for="data_pagamento">Data do Pagamento</label>
+                        <input type="date" id="data_pagamento">
+                    </div>
+
+                    <button onclick="adicionarTransacao()">Adicionar Transação</button>
+                </div>
+            </div>
+
+            <!-- ABA 2: TRANSACOES -->
+            <div id="listar-transacoes" class="tab-content-interno tab-pane-financeiro financeiro-transacoes">
+                <div class="transacoes-top">
+                    <div>
+                        <h3>Transações</h3>
+                    </div>
+                </div>
+                <div class="transacoes-saldo-header">
+                    <div style="width:100%; display:flex; justify-content:center;">
+                        <div class="form-group" style="max-width:260px; width:100%;">
+                            <input style="text-align:center;" type="month" id="transacoes-mes" onchange="carregarTransacoes()">
+                        </div>
+                    </div>
+                    <div id="transacoes-saldo" class="kanban-totalizador saldo positivo">⚖️ Saldo do mês <strong>Carregando...</strong></div>
+                </div>
+
+                <div class="tabs-transacoes">
+                    <button class="tab-btn-transacao active" onclick="abrirAbaTransacoes(event, 'tab-ganhos')">💰 Ganhos</button>
+                    <button class="tab-btn-transacao" onclick="abrirAbaTransacoes(event, 'tab-despesas')">💸 Despesas</button>
+                    <button class="tab-btn-transacao" onclick="abrirAbaTransacoes(event, 'tab-cofres')">🐷 Cofres</button>
+                </div>
+
+                <div id="tab-ganhos" class="tab-content-transacao active">
+                    <div class="transacoes-duas-colunas">
+                        <div class="transacoes-coluna">
+                            <h5>⏳ Pendentes</h5>
+                            <div id="ganhos-pendentes" class="kanban-container"></div>
+                        </div>
+                        <div class="transacoes-coluna">
+                            <h5>✅ Recebidos</h5>
+                            <div id="ganhos-pagos" class="kanban-container"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-despesas" class="tab-content-transacao" hidden>
+                    <div class="transacoes-duas-colunas">
+                        <div class="transacoes-coluna">
+                            <h5>⏳ Pendentes</h5>
+                            <div id="despesas-pendentes" class="kanban-container"></div>
+                        </div>
+                        <div class="transacoes-coluna">
+                            <h5>✅ Pagas</h5>
+                            <div id="despesas-pagas" class="kanban-container"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-cofres" class="tab-content-transacao" hidden>
+                    <div class="transacoes-duas-colunas">
+                        <div class="transacoes-coluna">
+                            <h5>🐷 Cofres com rendimento CDI</h5>
+                            <div id="cofres-rentaveis" class="kanban-container"></div>
+                        </div>
+                        <div class="transacoes-coluna">
+                            <h5>🎯 Metas</h5>
+                            <div id="cofres-simples" class="kanban-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA 3: CATEGORIAS (movida para Financeiro) -->
+            <div id="categorias-interno" class="tab-content-interno tab-pane-financeiro">
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3>Cadastrar Categoria</h3>
+                    
+                    <div class="form-group">
+                        <label for="cat-tipo">Tipo</label>
+                        <select id="cat-tipo">
+                            <option value="despesa">💰 Gasto de Gold</option>
+                            <option value="ganho">⚡ XP Ganho</option>
+                            <option value="cofre">Cofre</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cat-nome">Nome da Categoria</label>
+                        <input type="text" id="cat-nome" placeholder="Ex: Alimentação, Transporte...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cat-icone">Ícone/Emoji</label>
+                        <input type="text" id="cat-icone" placeholder="Ex: 🍔, 🚗" maxlength="5" value="📌">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cat-cor">Cor (Hexadecimal)</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="color" id="cat-cor" value="#001f3f" style="width: 60px; height: 40px; border: none; cursor: pointer;">
+                            <input type="text" id="cat-cor-texto" value="#001f3f" readonly style="flex: 1;">
+                        </div>
+                    </div>
+
+                    <div id="msg-categoria"></div>
+                    <button onclick="adicionarCategoria()" style="width: 100%; margin-top: 10px;">Adicionar Categoria</button>
+                </div>
+
+                <h3>Categorias de Despesa</h3>
+                <div id="categorias-despesa" class="categorias-grid"></div>
+
+                <h3 style="margin-top: 30px;">Categorias de Ganho</h3>
+                <div id="categorias-ganho" class="categorias-grid"></div>
+            </div>
+
+            <div id="relatorio-interno" class="tab-content-interno tab-pane-financeiro">
+                <div class="card">
+                    <h3>Relatório do Mês</h3>
+
+                    <div class="form-group">
+                        <label for="mes-filtro">Selecione o mês</label>
+                        <input type="month" id="mes-filtro" onchange="carregarMetricas()">
+                    </div>
+
+                    <div class="export-btn-group">
+                        <button class="btn-export" onclick="exportarPDF()">📥 Exportar PDF</button>
+                    </div>
+
+                    <div id="metricas-content"></div>
+                    <div id="relatorio-chart" style="margin-top:12px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== ABA LISTA DE COMPRAS ==================== -->
+        <div id="lista" class="tab-content">
+            <div class="card" style="margin-bottom: 20px;">
+                <h3>Criar Nova Lista</h3>
+                
+                <div class="form-group">
+                    <label for="nova-lista-titulo">Título da Lista</label>
+                    <input type="text" id="nova-lista-titulo" placeholder="Ex: Compras do mês, Açougue...">
+                </div>
+
+                <button onclick="criarNovaLista()">Criar Lista</button>
+            </div>
+
+            <div id="listas-container" class="lista-container"></div>
+        </div>
+
+        <!-- 'Categorias' top-level removed; categories UI moved into Financeiro -->
+    </div>
+
+    <!-- ==================== MODAL EDIÇÃO ====================-->
+    <div id="modal-edicao" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Transação</h3>
+                <button class="modal-close" onclick="fecharModal()">✕</button>
+            </div>
+
+            <div id="msg-modal"></div>
+
+            <div class="form-group">
+                <label for="modal-tipo">Tipo</label>
+                <select id="modal-tipo" onchange="atualizarCategorias()">
+                    <option value="">-- Selecionar --</option>
+                    <option value="despesa">💰 Gasto de Gold</option>
+                    <option value="ganho">⚡ XP Ganho</option>
+                    <option value="cofre">Cofre</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="modal-descricao">Descrição</label>
+                <input type="text" id="modal-descricao">
+            </div>
+
+            <div class="form-group">
+                <label for="modal-observacao">Observação</label>
+                <textarea id="modal-observacao" rows="2"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="modal-valor">Valor</label>
+                <input type="number" id="modal-valor" step="0.01" min="0">
+            </div>
+
+            <div class="form-group" id="modal-cofre-opcoes" style="display:none;">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" id="modal-cofre-aplicar-cdi" onchange="toggleCampoCDIModal()" style="width:20px; height:20px; accent-color:#00d4ff;">
+                    <span style="font-weight:600;">Aplicar rendimento CDI?</span>
+                </label>
+            </div>
+            <div class="form-group" id="modal-cofre-cdi-grupo" style="display:none;">
+                <label for="modal-cofre-cdi-percent">Percentual sobre CDI (%)</label>
+                <input type="number" id="modal-cofre-cdi-percent" step="0.01" min="0" placeholder="Ex: 102">
+            </div>
+
+            <div class="form-group">
+                <label for="modal-categoria">Categoria</label>
+                <select id="modal-categoria">
+                    <option value="">-- Sem categoria --</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="modal-vencimento-grupo">
+                <label for="modal-vencimento">Data de Vencimento</label>
+                <input type="date" id="modal-vencimento">
+            </div>
+
+            <div class="form-group">
+                <label for="modal-pago" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="modal-pago" onchange="toggleDataPagamentoModal()" style="width: 20px; height: 20px; cursor: pointer; accent-color: #00d4ff;">
+                    <span style="font-weight: 600;">Já foi pago?</span>
+                </label>
+            </div>
+
+            <div class="form-group" id="modal-data-pagamento-grupo" style="display: none;">
+                <label for="modal-data_pagamento">Data do Pagamento</label>
+                <input type="date" id="modal-data_pagamento">
+            </div>
+
+            <div class="modal-acoes">
+                <button onclick="salvarEdicao()">💾 Salvar</button>
+                <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-detalhes" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalhes da Transação</h3>
+                <button class="modal-close" onclick="fecharDetalhes()">✕</button>
+            </div>
+            <div class="detalhes-grid">
+                <div class="detalhe-item">
+                    <label>Descrição</label>
+                    <p id="detalhe-descricao">—</p>
+                </div>
+                <div class="detalhe-item">
+                    <label>Valor</label>
+                    <p id="detalhe-valor">—</p>
+                </div>
+                <div class="detalhe-item">
+                    <label>Categoria</label>
+                    <p id="detalhe-categoria">—</p>
+                </div>
+                <div class="detalhe-item">
+                    <label>Vencimento</label>
+                    <p id="detalhe-vencimento">—</p>
+                </div>
+                <div class="detalhe-item">
+                    <label>Observação</label>
+                    <p id="detalhe-observacao">—</p>
+                </div>
+                <div class="detalhe-item" id="detalhe-cofre-projecao" style="display:none;">
+                    <label>Projeção PicPay (30 dias)</label>
+                    <p id="detalhe-cofre-texto">—</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.transacoesCache = {};
+        // ==================== INICIALIZAÇÃO ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            const hoje = new Date();
+            const mesAtual = hoje.toISOString().slice(0, 7);
+            const mesFiltroEl = document.getElementById('mes-filtro');
+            if (mesFiltroEl) mesFiltroEl.value = mesAtual;
+            const transMesEl = document.getElementById('transacoes-mes');
+            if (transMesEl) transMesEl.value = mesAtual;
+            const vencEl = document.getElementById('vencimento');
+            if (vencEl) vencEl.value = mesAtual + '-' + String(hoje.getDate()).padStart(2, '0');
+            const dataPagEl = document.getElementById('data_pagamento');
+            if (dataPagEl) dataPagEl.value = mesAtual + '-' + String(hoje.getDate()).padStart(2, '0');
+
+            // Event listeners do modal (adiciona somente se os elementos existirem)
+            const modalTipo = document.getElementById('modal-tipo');
+            if (modalTipo) modalTipo.addEventListener('change', atualizarCategorias);
+            const modalPago = document.getElementById('modal-pago');
+            if (modalPago) modalPago.addEventListener('change', toggleDataPagamentoModal);
+            const modalSalvar = document.getElementById('modal-salvar');
+            if (modalSalvar) modalSalvar.addEventListener('click', salvarEdicao);
+            const modalFechar = document.getElementById('modal-fechar');
+            if (modalFechar) modalFechar.addEventListener('click', fecharModal);
+            const modalCancelar = document.getElementById('modal-cancelar');
+            if (modalCancelar) modalCancelar.addEventListener('click', fecharModal);
+
+            // Fechar modal ao clicar fora
+            const modalEd = document.getElementById('modal-edicao');
+            if (modalEd) {
+                modalEd.addEventListener('click', function(e) {
+                    if (e.target.id === 'modal-edicao') {
+                        fecharModal();
+                    }
+                });
+            }
+
+            const modalDetalhes = document.getElementById('modal-detalhes');
+            if (modalDetalhes) {
+                modalDetalhes.addEventListener('click', function(e) {
+                    if (e.target.id === 'modal-detalhes') {
+                        fecharDetalhes();
+                    }
+                });
+            }
+
+            carregarDashboard();
+            carregarTransacoes();
+            carregarMetricas();
+            carregarListas();
+            carregarCategorias();
+            atualizarCombosCategorias();
+            syncBottomNav('dashboard');
+        });
+
+        // ==================== ABAS ====================
+        function abrirAba(event, abaId) {
+            const abas = document.querySelectorAll('.tab-content');
+            abas.forEach(aba => aba.classList.remove('active'));
+
+            const alvo = document.getElementById(abaId);
+            if (alvo) {
+                alvo.classList.add('active');
+            }
+
+            const botoes = document.querySelectorAll('.tab-btn');
+            botoes.forEach(btn => {
+                const mesmoAlvo = btn.dataset.tab === abaId;
+                btn.classList.toggle('active', mesmoAlvo);
+            });
+
+            syncBottomNav(abaId);
+
+            if (abaId === 'lista') {
+                carregarListas();
+            } else if (abaId === 'dashboard') {
+                carregarDashboard();
+            } else if (abaId === 'financeiro') {
+                carregarCategorias();
+            }
+        }
+
+        function syncBottomNav(abaId) {
+            const navBotoes = document.querySelectorAll('.bottom-nav .bottom-btn');
+            navBotoes.forEach(btn => {
+                const ativo = btn.dataset.tab === abaId;
+                btn.classList.toggle('active', ativo);
+            });
+        }
+
+        // ==================== ABAS INTERNAS ====================
+        function abrirAbaInterna(event, abaId) {
+            const botoes = document.querySelectorAll('.tab-btn-interno');
+            botoes.forEach(btn => btn.classList.remove('active'));
+            const alvoBotao = event && (event.currentTarget || event.target);
+            if (alvoBotao) {
+                alvoBotao.classList.add('active');
+            }
+
+            const paineis = document.querySelectorAll('.tab-pane-financeiro');
+            paineis.forEach(tab => tab.classList.remove('active'));
+
+            const targetPane = document.getElementById(abaId);
+            if (targetPane) {
+                targetPane.classList.add('active');
+            }
+
+            if (abaId === 'resumo-mes') {
+                carregarMetricas();
+            } else if (abaId === 'listar-transacoes') {
+                carregarTransacoes();
+            } else if (abaId === 'categorias-interno') {
+                carregarCategorias();
+            } else if (abaId === 'relatorio-interno') {
+                carregarMetricas();
+            }
+        }
+
+        function abrirAbaTransacoes(event, abaId) {
+            const tabs = document.querySelectorAll('.tab-content-transacao');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+                tab.setAttribute('hidden', 'hidden');
+            });
+
+            const botoes = document.querySelectorAll('.tab-btn-transacao');
+            botoes.forEach(btn => btn.classList.remove('active'));
+
+            const alvo = document.getElementById(abaId);
+            if (alvo) {
+                alvo.classList.add('active');
+                alvo.removeAttribute('hidden');
+            }
+
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
+            // Atualiza painel de saldo conforme aba ativa
+            atualizarSaldoTransacoesResumo();
+        }
+
+        function atualizarSaldoTransacoesResumo() {
+            const saldoElemento = document.getElementById('transacoes-saldo');
+            if (!saldoElemento) return;
+            const cofresAtivo = document.getElementById('tab-cofres') && document.getElementById('tab-cofres').classList.contains('active');
+                        const resumo = window._resumoCofres;
+            const saldoMes = window._saldoMes;
+            if (cofresAtivo && resumo) {
+                                saldoElemento.className = 'kanban-totalizador saldo positivo';
+                                const rentBase = (resumo.rentBase||0);
+                                const rentProj12Total = (resumo.rentProj12Total||0);
+                                const rentGanho12 = (resumo.rentGanho12||0);
+                                const metasBase = (resumo.metasBase||0);
+                                const metasProj12Total = (resumo.metasProj12Total||0);
+                                const rentMensalGanho = rentGanho12/12; // ganho projetado médio por mês
+                saldoElemento.innerHTML = '<div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">'
+                  + '<div style="flex:1 1 180px; min-width:160px; background:#001f3f; color:#fff; padding:10px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.25);">'
+                      + '<div style="font-weight:700;">🐷 CDI</div>'
+                      + '<div style="font-size:1.1em; font-weight:700; margin-top:4px;">R$ ' + rentBase.toFixed(2) + '</div>'
+                      + '<div style="font-size:0.75em; margin-top:6px; line-height:1.4;">Ganho 12m: +R$ ' + rentGanho12.toFixed(2) + '<br>Médio mês: +R$ ' + rentMensalGanho.toFixed(2) + '<br>Total 12m: R$ ' + rentProj12Total.toFixed(2) + '</div>'
+                  + '</div>'
+                  + '<div style="flex:1 1 180px; min-width:160px; background:#032544; color:#fff; padding:10px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.25);">'
+                      + '<div style="font-weight:700;">🎯 Metas</div>'
+                      + '<div style="font-size:1.1em; font-weight:700; margin-top:4px;">R$ ' + metasBase.toFixed(2) + '</div>'
+                      + '<div style="font-size:0.75em; margin-top:6px; line-height:1.4;">Projeção 12m: R$ ' + metasProj12Total.toFixed(2) + '<br>Médio mês aporte: R$ ' + metasBase.toFixed(2) + '</div>'
+                  + '</div>'
+                + '</div>';
+            } else if (typeof saldoMes === 'number') {
+                const saldoClass = saldoMes >= 0 ? 'positivo' : 'negativo';
+                saldoElemento.className = 'kanban-totalizador saldo ' + saldoClass;
+                saldoElemento.innerHTML = '⚖️ Saldo do mês<br><strong>' + (saldoMes >= 0 ? '+' : '-') + 'R$ ' + Math.abs(saldoMes).toFixed(2) + '</strong>';
+            }
+        }
+
+        // ==================== COFRES (HELPERS) ====================
+        const COFRE_META_PREFIX = '__COFRE__';
+        const CDI_BASE_ANUAL = 13.15; // % anual aproximado
+        const PICPAY_CDI_DEFAULT = 102; // PicPay divulga 102% do CDI com liquidez diária
+
+        function montarObservacaoCofre({nota, aplicar_cdi, percent_cdi, cdi_anual, fonte}) {
+            const meta = {
+                tipo: 'cofre',
+                nota: nota || '',
+                aplicar_cdi: !!aplicar_cdi,
+                percent_cdi: percent_cdi || 0,
+                cdi_anual: cdi_anual || 0,
+                fonte: fonte || 'picpay',
+                criado_em: new Date().toISOString()
+            };
+            return COFRE_META_PREFIX + JSON.stringify(meta);
+        }
+
+        function extrairMetaCofre(observacao) {
+            if (!observacao || typeof observacao !== 'string') return null;
+            if (!observacao.startsWith(COFRE_META_PREFIX)) return null;
+            try {
+                const json = observacao.slice(COFRE_META_PREFIX.length);
+                return JSON.parse(json);
+            } catch (e) {
+                console.warn('Falha ao ler meta do cofre', e);
+                return null;
+            }
+        }
+
+        function enriquecerTransacaoCofre(transacao) {
+            if (!transacao) return transacao;
+            const tipoAtual = (transacao.tipo || '').toLowerCase();
+            if (tipoAtual === 'investimento') transacao.tipo = 'cofre';
+            if ((transacao.tipo || '').toLowerCase() !== 'cofre') return transacao;
+
+            const meta = extrairMetaCofre(transacao.observacao);
+            if (meta) {
+                transacao._cofreInfo = meta;
+                transacao.observacao = meta.nota || '';
+                transacao.aplicar_cdi = meta.aplicar_cdi;
+                transacao.percent_cdi = meta.percent_cdi;
+                transacao.cdi_anual = meta.cdi_anual;
+            } else if (!transacao._cofreInfo) {
+                transacao._cofreInfo = {
+                    aplicar_cdi: !!transacao.aplicar_cdi,
+                    percent_cdi: transacao.percent_cdi || 0,
+                    cdi_anual: transacao.cdi_anual || 0,
+                    nota: transacao.observacao || ''
+                };
+            }
+            return transacao;
+        }
+
+        function ehCofreComRendimento(transacao) {
+            return transacao && (transacao.tipo || '').toLowerCase() === 'cofre' && transacao._cofreInfo && transacao._cofreInfo.aplicar_cdi && Number(transacao._cofreInfo.percent_cdi) > 0;
+        }
+
+
+        function calcularProjecaoPicPay(valorBase, meta) {
+            const percent = meta && meta.percent_cdi ? meta.percent_cdi : PICPAY_CDI_DEFAULT;
+            const cdiAnual = meta && meta.cdi_anual ? meta.cdi_anual : (percent / 100) * CDI_BASE_ANUAL;
+            const taxaDiaria = Math.pow(1 + (cdiAnual / 100), 1 / 252) - 1;
+            const taxa30d = Math.pow(1 + taxaDiaria, 30) - 1;
+            const ganho = valorBase * taxa30d;
+            return {
+                ganho,
+                total: valorBase + ganho,
+                taxaMensalPerc: taxa30d * 100,
+                percentReferenciado: percent,
+                cdiAnual,
+                taxaDiaria
+            };
+        }
+
+        // Projeção composta para ~12 meses usando capitalização diária (252 dias úteis)
+        function calcularProjecao12Meses(valorBase, meta) {
+            if (!meta) meta = {};
+            const percent = meta.percent_cdi || PICPAY_CDI_DEFAULT;
+            const anual = meta.cdi_anual || (percent / 100) * CDI_BASE_ANUAL;
+            if (!anual) return { ganho12: 0, total12: valorBase, anual: 0 };
+            const taxaDiaria = Math.pow(1 + (anual / 100), 1 / 252) - 1;
+            const fatorAno = Math.pow(1 + taxaDiaria, 252);
+            const ganho12 = valorBase * (fatorAno - 1);
+            return { ganho12, total12: valorBase + ganho12, anual, taxaDiaria };
+        }
+
+        function atualizarKpiCofresPainel({totalBase = 0, totalCdi = 0, totalSem = 0, proj12 = 0} = {}) {
+            const kpi = document.getElementById('kpi-cofres');
+            if (!kpi) return;
+
+            kpi.innerHTML = '<h4>🐷 Cofres</h4>' +
+                '<div class="kpi-valor">R$ ' + totalBase.toFixed(2) + '</div>' +
+                '<small><strong>CDI:</strong> R$ ' + totalCdi.toFixed(2) + ' (12m: R$ ' + proj12.toFixed(2) + ')<br>' +
+                '<strong>Sem rendimento:</strong> R$ ' + totalSem.toFixed(2) + '</small>';
+        }
+
+        // ==================== DASHBOARD ====================
+        function atualizarGraficoMes() {
+            // antigo: usava window.dadosDashboard. Agora carregamos via endpoint dedicado.
+            const select = document.getElementById('dash-cat-select');
+            const categoriaFiltro = select ? select.value : '';
+            carregarGraficoGastos(categoriaFiltro);
+        }
+
+        function atualizarChartMeses(meses_gastos) {
+            const chartContainer = document.getElementById('chart-meses');
+            if (!chartContainer) return;
+
+            let html = '';
+            const maxGasto = Math.max(...Object.values(meses_gastos));
+            
+            Object.entries(meses_gastos).forEach(function([mes, valor]) {
+                const altura = (valor / maxGasto) * 150;
+                html += '<div class="chart-bar"><div class="bar" style="height: ' + altura + 'px;"></div><label>' + mes.substring(5, 7) + '</label><div class="valor">R$ ' + valor.toFixed(0) + '</div></div>';
+            });
+
+            chartContainer.innerHTML = html;
+        }
+
+        // Novo: carregar gráfico de gastos usando endpoint /api/gastos/por-mes
+        function carregarGraficoGastos(categoria) {
+            // Se houver um mês selecionado no dashboard, carregamos métricas do mês (despesa/ganho/saldo)
+            const mesInput = document.getElementById('dashboard-mes');
+            let mesSelecionado = mesInput ? mesInput.value : '';
+            if (!mesSelecionado) {
+                const mesFiltro = document.getElementById('mes-filtro');
+                if (mesFiltro) mesSelecionado = mesFiltro.value || '';
+            }
+            if (mesSelecionado) {
+                const url = '/api/metricas/mes?mes=' + encodeURIComponent(mesSelecionado);
+                fetch(url)
+                    .then(r => r.json())
+                    .then(data => {
+                        renderizarGraficoMesSelecionado(data);
+                    })
+                    .catch(err => {
+                        console.error('Erro ao carregar métricas do mês:', err);
+                        const container = document.getElementById('chart-meses-dashboard');
+                        if (container) container.innerHTML = '<div class="erro">Erro ao carregar métricas do mês</div>';
+                    });
+                return;
+            }
+
+            // Caso não haja mês selecionado, comportamento antigo: gráfico por meses
+            const url = categoria ? ('/api/gastos/por-mes?categoria=' + encodeURIComponent(categoria)) : '/api/gastos/por-mes';
+            fetch(url)
+                .then(r => r.json())
+                .then(data => {
+                    renderizarGraficoGastos(data);
+                })
+                .catch(err => {
+                    console.error('Erro ao carregar gráfico de gastos:', err);
+                    const container = document.getElementById('chart-meses-dashboard');
+                    if (container) container.innerHTML = '<div class="erro">Erro ao carregar gráfico</div>';
+                });
+        }
+
+        function renderizarGraficoMesSelecionado(dados) {
+            const container = document.getElementById('chart-meses-dashboard');
+            if (!container) return;
+
+            if (!dados) {
+                container.innerHTML = '<div class="empty-state"><p>Nenhum dado para o mês.</p></div>';
+                return;
+            }
+
+            // dados contém estrutura semelhante a carregarMetricas() response: despesas, ganhos, saldo
+            const desp = (dados.despesas && dados.despesas.total) ? dados.despesas.total : 0;
+            const ganho = (dados.ganhos && dados.ganhos.total) ? dados.ganhos.total : 0;
+            const saldo = typeof dados.saldo !== 'undefined' ? dados.saldo : (ganho - desp);
+
+            // Melhor visual: três barras com rótulos e um bloco de insights
+            const valores = [desp, ganho, Math.abs(saldo)];
+            const maxVal = Math.max(...valores, 1);
+
+            let html = '<div style="display:flex; gap:20px; align-items:end;">';
+            // Despesa
+            const alturaDesp = (desp / maxVal) * 160;
+            html += '<div style="text-align:center; width:100px;"><div style="height:' + alturaDesp + 'px; background:#d9534f; border-radius:6px 6px 0 0; display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px;">';
+            html += '<span style="color:#fff; font-weight:700; font-size:0.9em;">R$ ' + Number(desp).toFixed(0) + '</span></div><div style="margin-top:8px; font-weight:700;">Despesa</div></div>';
+            // Ganho
+            const alturaGanho = (ganho / maxVal) * 160;
+            html += '<div style="text-align:center; width:100px;"><div style="height:' + alturaGanho + 'px; background:#00a854; border-radius:6px 6px 0 0; display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px;">';
+            html += '<span style="color:#fff; font-weight:700; font-size:0.9em;">R$ ' + Number(ganho).toFixed(0) + '</span></div><div style="margin-top:8px; font-weight:700;">Ganho</div></div>';
+            // Saldo
+            const alturaSaldo = (Math.abs(saldo) / maxVal) * 160;
+            const saldoColor = saldo >= 0 ? '#00a854' : '#d9534f';
+            html += '<div style="text-align:center; width:100px;"><div style="height:' + alturaSaldo + 'px; background:' + saldoColor + '; border-radius:6px 6px 0 0; display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px;">';
+            html += '<span style="color:#fff; font-weight:700; font-size:0.9em;">R$ ' + Number(saldo).toFixed(0) + '</span></div><div style="margin-top:8px; font-weight:700;">Saldo</div></div>';
+            html += '</div>';
+
+            // Insights menores
+            let insights = '<div style="margin-top:14px; display:flex; gap:12px; flex-wrap:wrap;">';
+            const despagas = (dados.despesas && dados.despesas.pagas) ? dados.despesas.pagas : 0;
+            const despTotal = desp || 0;
+            const percDespPagas = despTotal > 0 ? Math.round((despagas / despTotal) * 100) : 0;
+            insights += '<div class="item-destaque" style="padding:10px; border-radius:8px; background:#f7f9fb;">Despesas pagas: <strong>' + percDespPagas + '%</strong></div>';
+            const ganhosPendentes = (dados.ganhos && dados.ganhos.pendentes) ? dados.ganhos.pendentes : 0;
+            const ganhosTotal = ganho || 0;
+            const percGanhosPend = ganhosTotal > 0 ? Math.round((ganhosPendentes / ganhosTotal) * 100) : 0;
+            insights += '<div class="item-destaque" style="padding:10px; border-radius:8px; background:#f7f9fb;">Ganhos pendentes: <strong>' + percGanhosPend + '%</strong></div>';
+            const cobr = despTotal > 0 ? Math.round((ganho / despTotal) * 100) : 0;
+            insights += '<div class="item-destaque" style="padding:10px; border-radius:8px; background:#f7f9fb;">Cobertura (ganho/desp.): <strong>' + cobr + '%</strong></div>';
+            insights += '</div>';
+
+            container.innerHTML = html + insights;
+        }
+
+        function renderizarGraficoGastos(meses_gastos) {
+            const chartContainer = document.getElementById('chart-meses-dashboard');
+            if (!chartContainer) return;
+
+            if (!meses_gastos || Object.keys(meses_gastos).length === 0) {
+                chartContainer.innerHTML = '<div class="empty-state"><p>Nenhum dado para o gráfico.</p></div>';
+                return;
+            }
+
+            let html = '<div class="simple-chart">';
+            const valores = Object.values(meses_gastos);
+            const maxGasto = Math.max(...valores);
+            Object.entries(meses_gastos).forEach(function([mes, valor]) {
+                const altura = maxGasto > 0 ? (valor / maxGasto) * 150 : 0;
+                // cada barra é clicável e contém atributo data-mes (YYYY-MM)
+                html += '<div class="chart-bar"><div class="bar" style="height: ' + altura + 'px; cursor:pointer;" data-mes="' + mes + '" onclick="onBarClick(\'' + mes + '\')"></div><label>' + mes.substring(5, 7) + '</label><div class="valor">R$ ' + Number(valor).toFixed(0) + '</div></div>';
+            });
+            html += '</div>';
+
+            chartContainer.innerHTML = html;
+        }
+
+        function carregarCategoriasDashParaGrafico() {
+            fetch('/api/categorias?tipo=despesa')
+                .then(r => r.json())
+                .then(cats => {
+                    const sel = document.getElementById('dash-cat-select');
+                    if (!sel) return;
+                    sel.innerHTML = '<option value="">Todas as Categorias</option>';
+                    cats.forEach(function(c) {
+                        const opt = document.createElement('option');
+                        opt.value = c.nome;
+                        opt.textContent = c.nome;
+                        sel.appendChild(opt);
+                    });
+                });
+        }
+
+        // Clicar em uma barra do gráfico: filtra o dashboard para o mês e rola até o gráfico
+        function onBarClick(mes) {
+            const mesInput = document.getElementById('dashboard-mes');
+            if (mesInput) mesInput.value = mes;
+            // Recarrega o dashboard com novo mês
+            carregarDashboard();
+            // Após pequena espera (aguardar fetch), rola até o gráfico de meses
+            setTimeout(function() {
+                const chart = document.getElementById('chart-meses-dashboard');
+                if (chart) chart.scrollIntoView({behavior: 'smooth'});
+            }, 600);
+        }
+
+        // Calendar functionality removed per user preference
+
+        function toggleGraficoDashboard() {
+            const chk = document.getElementById('toggle-grafico');
+            const container = document.getElementById('grafico-dashboard-wrapper');
+            if (!container) return;
+            container.style.display = chk && !chk.checked ? 'none' : 'block';
+            if (chk && chk.checked) {
+                const cat = document.getElementById('dash-cat-select') ? document.getElementById('dash-cat-select').value : '';
+                carregarGraficoGastos(cat);
+            }
+        }
+
+        function carregarDashboard() {
+            // montar seletor de mês e area de conteúdo
+            const hoje = new Date();
+            const mesAtual = hoje.toISOString().slice(0,7);
+            // se já existir um seletor no DOM (usuário selecionou um mês), preservamos esse valor
+            const existente = document.getElementById('dashboard-mes');
+            const mesSelecionado = existente && existente.value ? existente.value : mesAtual;
+            let headerHtml = '<div style="display:flex; gap:12px; align-items:center; margin-bottom:16px;">';
+            headerHtml += '<input type="month" id="dashboard-mes" value="' + mesSelecionado + '" style="padding:8px; border:2px solid #ddd; border-radius:6px;">';
+            headerHtml += '<button type="button" id="dashboard-atualizar" style="width:auto; padding:10px 14px;">Atualizar</button>';
+            headerHtml += '</div>';
+
+            document.getElementById('dashboard-content').innerHTML = headerHtml + '<div class="empty-state"><p>Carregando dashboard...</p></div>';
+            // Garantir que o botão Atualizar previna comportamento padrão (não recarregar a página)
+            const inicialBtn = document.getElementById('dashboard-atualizar');
+            if (inicialBtn) {
+                inicialBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    carregarDashboard();
+                });
+            }
+
+            const mesInput = document.getElementById('dashboard-mes');
+            const mes = mesInput ? mesInput.value : '';
+            const url = mes ? ('/api/dashboard?mes=' + mes) : '/api/dashboard';
+
+            fetch(url)
+                .then(response => response.json())
+                .then(dados => {
+                    // container principal
+                    let html = '';
+
+                    // KPIs simplificados
+                    html += '<div class="dashboard-grid">';
+                    html += '<div class="kpi-card negativo"><h4>💸 Despesas</h4><div class="kpi-valor">R$ ' + (dados.despesas.total || 0).toFixed(2) + '</div><small>Pagas: R$ ' + (dados.despesas.pagas || 0).toFixed(2) + '<br> Pendentes: R$ ' + (dados.despesas.pendentes || 0).toFixed(2) + '</small></div>';
+                    html += '<div class="kpi-card positivo"><h4>💰 Ganhos</h4><div class="kpi-valor">R$ ' + (dados.ganhos.total || 0).toFixed(2) + '</div><small>Recebidos: R$ ' + (dados.ganhos.recebidos || 0).toFixed(2) + '<br> Pendentes: R$ ' + (dados.ganhos.pendentes || 0).toFixed(2) + '</small></div>';
+                    const saldoClass = (dados.saldo || 0) >= 0 ? 'positivo' : 'negativo';
+                    html += '<div class="kpi-card ' + saldoClass + '"><h4>⚖️ Saldo</h4><div class="kpi-valor">' + (dados.saldo >= 0 ? '+' : '') + 'R$ ' + (dados.saldo || 0).toFixed(2) + '</div><small>Ganhos - Despesas</small></div>';
+                    html += '<div class="kpi-card" id="kpi-cofres" style="background:#001f3f; color:#fff;"><h4>🐷 Cofres</h4><div class="kpi-valor">Carregando...</div><small>Projeção CDI (12 meses)</small></div>';
+                    html += '</div>';
+
+                    html += '<div class="dashboard-section" style="margin-top:24px;">'
+                        + '<h3 style="margin:0 0 12px;">🥧 Despesas por Categoria</h3>'
+                        + '<div id="chart-pizza-despesas" class="chart-pizza"></div>'
+                    + '</div>';
+                    html += '<div class="dashboard-section" style="margin-top:24px;">'
+                        + '<div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px;">'
+                        + '<div><h3 style="margin:0;"> Despesas X Ganhos</h3></div>'
+                        + '</div>'
+                        + '<div id="chart-barras-dg" class="simple-chart" style="margin-top:12px;"></div>'
+                    + '</div>';
+
+                    // inserir tudo
+                    document.getElementById('dashboard-content').innerHTML = headerHtml + html;
+                    // Anexar listener ao botão Atualizar para prevenir reload (casos em que o botão esteja dentro de um form)
+                    const atualizarBtn = document.getElementById('dashboard-atualizar');
+                    if (atualizarBtn) {
+                        atualizarBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            carregarDashboard();
+                        });
+                    }
+                    // garantir que o seletor de mês mantenha o mês que foi usado na busca
+                    const dashInput = document.getElementById('dashboard-mes');
+                    if (dashInput) dashInput.value = mes || mesSelecionado || mesAtual;
+                    // Funções de gráfico mensal removidas
+                    carregarMetricas();
+                    gerarGraficosExtrasDashboard(mes || mesSelecionado || mesAtual);
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    document.getElementById('dashboard-content').innerHTML = '<div class="erro">Erro ao carregar dashboard</div>';
+                });
+        }
+
+        function gerarGraficosExtrasDashboard(mesRef) {
+            const transUrl = '/api/transacoes' + (mesRef ? ('?mes='+mesRef) : '');
+            Promise.all([
+                fetch(transUrl).then(r=>r.json()).catch(()=>[]),
+                fetch('/api/categorias?tipo=despesa').then(r=>r.json()).catch(()=>[]),
+                fetch('/api/transacoes').then(r=>r.json()).catch(()=>[])
+            ]).then(([lista,categorias,listaAno])=> {
+                if (!Array.isArray(lista)) lista = [];
+                if (!Array.isArray(listaAno)) listaAno = [];
+                const colorMap = {};
+                categorias.forEach(c=> { if (c.nome && c.cor) colorMap[c.nome] = c.cor; });
+
+                lista.forEach(enriquecerTransacaoCofre);
+                listaAno.forEach(enriquecerTransacaoCofre);
+                const anoAtual = new Date().getFullYear();
+                const listaAnoCorrente = listaAno.filter(t=> {
+                    const dataRef = (t.vencimento || t.data_pagamento || t.created_at || '').slice(0,4);
+                    return dataRef === String(anoAtual);
+                });
+
+                // Pizza despesas
+                const despesas = lista.filter(t=> t.tipo==='despesa');
+                const porCat = {};
+                despesas.forEach(d=> { const c = d.categoria||'Outros'; porCat[c] = (porCat[c]||0) + (d.valor||0); });
+                const totalDesp = Object.values(porCat).reduce((s,v)=>s+v,0) || 0;
+                const pizzaEl = document.getElementById('chart-pizza-despesas');
+                if (pizzaEl) {
+                    if (totalDesp === 0) { pizzaEl.innerHTML = '<div class="empty-state"><p>Sem despesas.</p></div>'; }
+                    else {
+                        const ordenado = Object.entries(porCat).sort((a,b)=> b[1]-a[1]);
+                        let acumulado = 0;
+                        const partes = ordenado.map(([cat,val],idx)=> {
+                            const inicio = (acumulado/totalDesp)*100;
+                            acumulado += val;
+                            const fim = (acumulado/totalDesp)*100;
+                            const cor = colorMap[cat] || ['#001f3f','#0074D9','#39CCCC','#2ECC40','#FF851B','#FF4136','#B10DC9','#85144b','#AAAAAA'][idx % 9];
+                            return {cat,val,inicio,fim,cor};
+                        });
+                        const gradient = partes.map(p=> p.cor+' '+p.inicio+'% '+p.fim+'%').join(', ');
+                        let legenda = '<div style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">';
+                        partes.forEach(p=> { legenda += '<div style="display:flex; align-items:center; gap:6px; font-size:0.75em; font-weight:600;"><span style="width:12px; height:12px; background:'+p.cor+'; display:inline-block; border-radius:3px;"></span>'+p.cat+' - R$ '+p.val.toFixed(2)+' ('+((p.val/totalDesp)*100).toFixed(1)+'%)</div>'; });
+                        legenda += '</div>';
+                        pizzaEl.innerHTML = '<div style="width:140px; height:140px; border-radius:50%; background:conic-gradient('+gradient+'); box-shadow:0 0 8px rgba(0,0,0,0.15);"></div>' + legenda;
+                    }
+                }
+
+                // Barras anuais (12 meses ano corrente) com eixo zero: ganhos positivos, despesas negativas
+                const porMes = {};
+                listaAnoCorrente.forEach(t=> {
+                    const mes = (t.vencimento || t.data_pagamento || t.created_at || '').slice(0,7);
+                    if (!mes) return;
+                    porMes[mes] = porMes[mes] || {desp:0, ganho:0};
+                    if (t.tipo==='despesa') porMes[mes].desp += (t.valor||0);
+                    if (t.tipo==='ganho') porMes[mes].ganho += (t.valor||0);
+                });
+                const mesesAno = Array.from({length:12}, (_,i)=> anoAtual+'-'+String(i+1).padStart(2,'0'));
+                mesesAno.forEach(m=> {
+                    if (!porMes[m]) porMes[m] = {desp:0, ganho:0};
+                });
+                const barrasEl = document.getElementById('chart-barras-dg');
+                if (barrasEl) {
+                    const maxVal = Math.max(...mesesAno.map(m=> Math.max(porMes[m].desp, porMes[m].ganho)), 1);
+                    let htmlB = '<div style="display:flex; gap:16px; align-items:flex-end; padding:8px 4px; overflow-x:auto;">';
+                    mesesAno.forEach(m=> {
+                        const d = porMes[m];
+                        const hDesp = (d.desp/maxVal)*70;
+                        const hGanho = (d.ganho/maxVal)*70;
+                        htmlB += '<div style="width:48px; display:flex; flex-direction:column; align-items:center; position:relative;">';
+                        htmlB += '<div style="height:'+hGanho+'px; width:20px; background:#00a854; border-radius:4px 4px 0 0; display:flex; align-items:flex-end; justify-content:center; font-size:0.55em; color:#fff;">'+(d.ganho>0? 'R$ '+d.ganho.toFixed(0):'')+'</div>';
+                        htmlB += '<div style="width:24px; height:2px; background:#ccc; margin:2px 0;"></div>';
+                        htmlB += '<div style="height:'+hDesp+'px; width:20px; background:#d9534f; border-radius:0 0 4px 4px; display:flex; align-items:flex-start; justify-content:center; font-size:0.55em; color:#fff;">'+(d.desp>0? 'R$ '+d.desp.toFixed(0):'')+'</div>';
+                        htmlB += '<div style="margin-top:4px; font-size:0.6em; font-weight:600;">'+m.slice(5,7)+'</div>';
+                        htmlB += '</div>';
+                    });
+                    htmlB += '</div>';
+                    if (!lista.length) {
+                        htmlB += '<div class="empty-state" style="margin-top:8px;"><p>Sem movimentações no ano, exibindo referência zerada.</p></div>';
+                    }
+                    barrasEl.innerHTML = htmlB;
+                }
+
+                // Projeção dos cofres (12 meses, foco CDI)
+                const cofres = listaAno.filter(t=> (t.tipo||'').toLowerCase()==='cofre');
+                const aplicaveis = cofres.filter(ehCofreComRendimento);
+                const base = cofres.reduce((s,c)=> s + (c.valor||0),0);
+                const totalCdi = aplicaveis.reduce((s,c)=> s + (c.valor||0),0);
+                const totalSem = Math.max(base - totalCdi, 0);
+
+                let serieMensal = [];
+                for (let m=0; m<=12; m++) {
+                    let totalMes = base;
+                    aplicaveis.forEach(c=> {
+                        const meta = c._cofreInfo || {};
+                        const anual = meta.cdi_anual || c.cdi_anual || 0;
+                        const r_m = anual/100/12;
+                        totalMes += (c.valor||0) * (Math.pow(1+r_m,m) - 1);
+                    });
+                    serieMensal.push({mes:m, valor: totalMes});
+                }
+                const proj12 = serieMensal.length > 12 ? serieMensal[12].valor : base;
+                atualizarKpiCofresPainel({
+                    totalBase: base,
+                    totalCdi: totalCdi,
+                    totalSem: totalSem,
+                    proj12: proj12
+                });
+
+            }).catch(()=> {
+                const el = document.getElementById('chart-pizza-despesas');
+                if (el) el.innerHTML = '<div class="erro">Erro ao carregar gráficos</div>';
+            });
+        }
+
+        // ==================== FINANCEIRO ====================
+        var categoriasPorTipo = {
+            despesa: ['Aluguel', 'Alimentação', 'Combustível', 'Contas', 'Educação', 'Farmácia', 'Ração', 'Outro'],
+            ganho: ['Conta Bancária', 'Freelance', 'Investimento', 'Outro'],
+            cofre: ['Reserva', 'Investimento', 'Poupança', 'Outro']
+        };
+
+        function atualizarCategoriasCombo() {
+            const tipo = document.getElementById('tipo').value;
+            const combo = document.getElementById('categoria');
+            combo.innerHTML = '<option value="">-- Sem categoria --</option>';
+
+            if (tipo && categoriasPorTipo[tipo]) {
+                categoriasPorTipo[tipo].forEach(function(cat) {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = cat;
+                    combo.appendChild(option);
+                });
+            }
+
+            // Toggle campos específicos de Cofre
+            const vencGrupo = document.getElementById('vencimento-grupo');
+            const cofreOpcoes = document.getElementById('cofre-opcoes');
+            const cofreCdi = document.getElementById('cofre-cdi-grupo');
+            const categoriaGrupo = document.getElementById('categoria').closest('.form-group');
+            const pagoGrupo = document.getElementById('pago').closest('.form-group');
+            const dataPagamentoGrupo = document.getElementById('data-pagamento-grupo');
+            const recorrenteGrupo = document.getElementById('recorrente').closest('.form-group');
+            const parceladoGrupo = document.getElementById('parcelado') ? document.getElementById('parcelado').closest('.form-group') : null;
+            if (tipo === 'cofre') {
+                if (vencGrupo) vencGrupo.style.display = 'none';
+                if (cofreOpcoes) cofreOpcoes.style.display = 'block';
+                if (cofreCdi) cofreCdi.style.display = document.getElementById('cofre-aplicar-cdi').checked ? 'block' : 'none';
+                if (categoriaGrupo) categoriaGrupo.style.display = 'none';
+                if (pagoGrupo) pagoGrupo.style.display = 'none';
+                if (dataPagamentoGrupo) dataPagamentoGrupo.style.display = 'none';
+                if (recorrenteGrupo) recorrenteGrupo.style.display = 'none';
+                if (parceladoGrupo) parceladoGrupo.style.display = 'none';
+            } else {
+                if (vencGrupo) vencGrupo.style.display = 'block';
+                if (cofreOpcoes) cofreOpcoes.style.display = 'none';
+                if (cofreCdi) cofreCdi.style.display = 'none';
+                const chk = document.getElementById('cofre-aplicar-cdi');
+                if (chk) chk.checked = false;
+                if (categoriaGrupo) categoriaGrupo.style.display = 'block';
+                if (pagoGrupo) pagoGrupo.style.display = 'block';
+                if (recorrenteGrupo) recorrenteGrupo.style.display = 'flex';
+                if (parceladoGrupo) parceladoGrupo.style.display = 'flex';
+            }
+        }
+
+        function toggleCampoCDI() {
+            const chk = document.getElementById('cofre-aplicar-cdi');
+            const grupo = document.getElementById('cofre-cdi-grupo');
+            if (grupo) grupo.style.display = chk && chk.checked ? 'block' : 'none';
+        }
+
+        function toggleDataPagamento() {
+            const checkbox = document.getElementById('pago');
+            const grupo = document.getElementById('data-pagamento-grupo');
+            grupo.style.display = checkbox.checked ? 'block' : 'none';
+        }
+
+        function toggleRecorrente() {
+            // Recorrente agora gera automaticamente 12 meses (1 ano).
+            // Mantemos função para compatibilidade com listeners, nada a alterar no UI.
+            return;
+        }
+
+        function toggleParcelado() {
+            const chk = document.getElementById('parcelado');
+            document.getElementById('parcelas_total').disabled = !chk.checked;
+        }
+
+        function adicionarTransacao() {
+            const tipo = document.getElementById('tipo').value;
+            const descricao = document.getElementById('descricao').value;
+            const valor = document.getElementById('valor').value;
+            const categoria = document.getElementById('categoria').value;
+            const vencimentoInformado = document.getElementById('vencimento').value;
+            const pago = document.getElementById('pago').checked;
+            const data_pagamento = document.getElementById('data_pagamento').value;
+            const observacao = document.getElementById('observacao').value;
+            const aplicar_cdi = document.getElementById('cofre-aplicar-cdi') ? document.getElementById('cofre-aplicar-cdi').checked : false;
+            const percent_cdi = document.getElementById('cofre-cdi-percent') ? parseFloat(document.getElementById('cofre-cdi-percent').value || PICPAY_CDI_DEFAULT) : PICPAY_CDI_DEFAULT;
+            const cdi_anual_calc = aplicar_cdi ? (percent_cdi/100) * CDI_BASE_ANUAL : 0;
+            const hojeISO = new Date().toISOString().slice(0, 10);
+            const vencimentoParaEnvio = tipo === 'cofre' ? (vencimentoInformado || hojeISO) : vencimentoInformado;
+
+            const msgDiv = document.getElementById('msg-form');
+
+            if (!tipo || !descricao || !valor || !vencimentoParaEnvio) {
+                msgDiv.innerHTML = '<div class="erro">Preencha todos os campos obrigatórios!</div>';
+                return;
+            }
+
+            const observacaoPayload = (tipo === 'cofre')
+                ? montarObservacaoCofre({
+                    nota: observacao,
+                    aplicar_cdi,
+                    percent_cdi: aplicar_cdi ? percent_cdi : 0,
+                    cdi_anual: aplicar_cdi ? cdi_anual_calc : 0,
+                    fonte: aplicar_cdi ? 'picpay' : 'manual'
+                })
+                : observacao;
+
+            // coletar opções de recorrência / parcelamento
+            const recorrente = document.getElementById('recorrente').checked;
+            const parcelado = document.getElementById('parcelado').checked;
+            const parcelas_total = document.getElementById('parcelas_total').value;
+
+            fetch('/api/transacoes', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    tipo: tipo,
+                    descricao: descricao,
+                    valor: parseFloat(valor),
+                    categoria: (tipo === 'cofre') ? '' : categoria,
+                    vencimento: vencimentoParaEnvio,
+                    pago: (tipo === 'cofre') ? false : pago,
+                    data_pagamento: (tipo === 'cofre') ? null : (pago ? data_pagamento : null),
+                    observacao: observacaoPayload,
+                    recorrente: (tipo === 'cofre') ? false : recorrente,
+                    parcelado: (tipo === 'cofre') ? false : parcelado,
+                    parcelas_total: (tipo === 'cofre') ? undefined : (parcelas_total ? parseInt(parcelas_total) : undefined),
+                    aplicar_cdi: (tipo === 'cofre') ? aplicar_cdi : undefined,
+                    percent_cdi: (tipo === 'cofre' && aplicar_cdi) ? percent_cdi : undefined,
+                    cdi_anual: (tipo === 'cofre' && aplicar_cdi) ? cdi_anual_calc : undefined
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                    if (tipo === 'cofre') {
+                        console.log('Cofre criado:', data);
+                    }
+                msgDiv.innerHTML = '<div class="sucesso">Transação adicionada com sucesso!</div>';
+                document.getElementById('tipo').value = '';
+                document.getElementById('descricao').value = '';
+                document.getElementById('valor').value = '';
+                document.getElementById('categoria').value = '';
+                document.getElementById('pago').checked = false;
+                document.getElementById('observacao').value = '';
+                document.getElementById('recorrente').checked = false;
+                // meses_a_frente input removed; recorrente sempre gera 12 meses
+                document.getElementById('parcelado').checked = false;
+                document.getElementById('parcelas_total').value = '1';
+                document.getElementById('parcelas_total').disabled = true;
+                const cofreCdiChk = document.getElementById('cofre-aplicar-cdi');
+                if (cofreCdiChk) cofreCdiChk.checked = false;
+                const cofrePercent = document.getElementById('cofre-cdi-percent');
+                if (cofrePercent) cofrePercent.value = '';
+                toggleCampoCDI();
+                toggleDataPagamento();
+
+                carregarTransacoes();
+                carregarMetricas();
+                carregarDashboard();
+
+                setTimeout(function() { msgDiv.innerHTML = ''; }, 3000);
+            })
+            .catch(error => {
+                msgDiv.innerHTML = '<div class="erro">Erro: ' + error.message + '</div>';
+            });
+        }
+
+        function carregarTransacoes() {
+            const ganhosPendentesEl = document.getElementById('ganhos-pendentes');
+            const ganhosPagosEl = document.getElementById('ganhos-pagos');
+            const despesasPendentesEl = document.getElementById('despesas-pendentes');
+            const despesasPagasEl = document.getElementById('despesas-pagas');
+            const cofresRentaveisEl = document.getElementById('cofres-rentaveis');
+            const cofresSimplesEl = document.getElementById('cofres-simples');
+            const saldoElemento = document.getElementById('transacoes-saldo');
+            if (!ganhosPendentesEl || !ganhosPagosEl || !despesasPendentesEl || !despesasPagasEl || !saldoElemento) return;
+
+            let mes = '';
+            const transMesEl = document.getElementById('transacoes-mes');
+            const dashMesEl = document.getElementById('dashboard-mes');
+            const relMesEl = document.getElementById('mes-filtro');
+            if (transMesEl && transMesEl.value) {
+                mes = transMesEl.value;
+            } else if (dashMesEl && dashMesEl.value) {
+                mes = dashMesEl.value;
+            } else if (relMesEl && relMesEl.value) {
+                mes = relMesEl.value;
+            }
+            // Sempre buscar todas as transações e filtrar no front para permitir cofres recorrentes após mês de criação.
+            const url = '/api/transacoes';
+            if (transMesEl && mes && transMesEl.value !== mes) transMesEl.value = mes;
+
+            function parseDataFlex(dataStr) {
+                if (!dataStr) return null;
+                if (dataStr instanceof Date) {
+                    return isNaN(dataStr.getTime()) ? null : dataStr;
+                }
+                let texto = String(dataStr).trim();
+                if (!texto) return null;
+                if (/^\d{4}-\d{2}-\d{2}$/.test(texto)) {
+                    texto += 'T00:00:00';
+                } else if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/.test(texto)) {
+                    texto = texto.replace(' ', 'T');
+                }
+                let data = new Date(texto);
+                if (!isNaN(data.getTime())) return data;
+                // fallback trocando separador
+                data = new Date(texto.replace(/-/g, '/'));
+                return isNaN(data.getTime()) ? null : data;
+            }
+
+            function obterDataReferenciaTransacao(t) {
+                if (!t) return null;
+                const candidatos = [t.vencimento, t.data_pagamento, t.created_at, t.updated_at, t.data];
+                for (const cand of candidatos) {
+                    const data = parseDataFlex(cand);
+                    if (data) return data;
+                }
+                return null;
+            }
+
+            // Helper para verificar se data está dentro do mês selecionado
+            function dentroDoMes(dataObj) {
+                if (!mes) return true; // sem filtro -> tudo
+                if (!dataObj) return true; // sem data -> não escondemos
+                try {
+                    const ano = Number(mes.slice(0, 4));
+                    const mesIdx = Number(mes.slice(5, 7)) - 1;
+                    if (isNaN(ano) || isNaN(mesIdx)) return true;
+                    const inicio = new Date(ano, mesIdx, 1, 0, 0, 0, 0);
+                    const fim = new Date(ano, mesIdx + 1, 0, 23, 59, 59, 999);
+                    const data = dataObj instanceof Date ? dataObj : parseDataFlex(dataObj);
+                    if (!data) return true;
+                    return data >= inicio && data <= fim;
+                } catch {
+                    return true;
+                }
+            }
+
+            function obterDataCriacaoCofre(transacao) {
+                if (!transacao) return null;
+                const candidatos = [];
+                if (transacao._cofreInfo && transacao._cofreInfo.criado_em) {
+                    candidatos.push(transacao._cofreInfo.criado_em);
+                }
+                candidatos.push(transacao.vencimento, transacao.created_at, transacao.data_pagamento);
+                for (const cand of candidatos) {
+                    const data = parseDataFlex(cand);
+                    if (data) return data;
+                }
+                return null;
+            }
+
+            // Helper para verificar se cofre deve aparecer (a partir do mês de criação em diante)
+            function cofreAtivoNoMes(transacao) {
+                if (!mes) return true; // sem filtro -> mostrar todos
+                const dataCriacao = obterDataCriacaoCofre(transacao);
+                if (!dataCriacao) return true;
+                try {
+                    const inicioFiltro = new Date(mes + '-01');
+                    return (inicioFiltro.getFullYear() > dataCriacao.getFullYear()) ||
+                        (inicioFiltro.getFullYear() === dataCriacao.getFullYear() && inicioFiltro.getMonth() >= dataCriacao.getMonth());
+                } catch {
+                    return true;
+                }
+            }
+
+            fetch(url)
+                .then(response => response.json())
+                .then(transacoes => {
+                    if (!Array.isArray(transacoes)) transacoes = [];
+
+                    window.transacoesCache = {};
+                    transacoes.forEach(function(t) {
+                        enriquecerTransacaoCofre(t);
+                        window.transacoesCache[t.id] = t;
+                    });
+
+                    // Classificação robusta de tipos
+                    const ganhos = [];
+                    const despesas = [];
+                    const cofres = [];
+                    transacoes.forEach(function(t) {
+                        const tipoLower = (t.tipo || '').toLowerCase();
+                        if (tipoLower === 'ganho') {
+                            ganhos.push(t);
+                        } else if (tipoLower === 'despesa') {
+                            despesas.push(t);
+                        } else if (tipoLower === 'cofre' || tipoLower === 'investimento') {
+                            t.tipo = 'cofre';
+                            cofres.push(t);
+                        }
+                    });
+
+                    // Filtragem por mês (ganhos/despesas) usando vencimento
+                    const ganhosFiltrados = ganhos.filter(t => dentroDoMes(obterDataReferenciaTransacao(t)));
+                    const despesasFiltradas = despesas.filter(t => dentroDoMes(obterDataReferenciaTransacao(t)));
+                    const ganhosPendentes = ganhosFiltrados.filter(t => !t.pago);
+                    const ganhosPagos = ganhosFiltrados.filter(t => t.pago);
+                    const despesasPendentes = despesasFiltradas.filter(t => !t.pago);
+                    const despesasPagas = despesasFiltradas.filter(t => t.pago);
+                    // Cofres: mostrar a partir do mês de criação (vencimento) em diante
+                    const cofresVisiveis = cofres.filter(c => cofreAtivoNoMes(c));
+                    const cofresRentaveis = cofresVisiveis.filter(ehCofreComRendimento);
+                    const cofresSimples = cofresVisiveis.filter(t => !ehCofreComRendimento(t));
+
+                    const ganhosTotal = ganhosFiltrados.reduce((s, t) => s + t.valor, 0);
+                    const despesasTotal = despesasFiltradas.reduce((s, t) => s + t.valor, 0);
+                    const cofresTotal = cofresVisiveis.reduce((s, t) => s + t.valor, 0);
+                    // Saldo permanece ganhos - despesas (investimentos/cofres fora do fluxo de caixa)
+                    const saldoTotal = ganhosTotal - despesasTotal;
+                    // Guardar total de ganhos do mês para sugestão de aporte em metas (10%)
+                    window._ganhosTotalMes = ganhosTotal;
+                    // Guardar resumos globais para atualização dinâmica
+                    window._saldoMes = saldoTotal;
+                    const rendendo = cofres.filter(ehCofreComRendimento);
+                    const metas = cofres.filter(c => !ehCofreComRendimento(c));
+                    let ganhoCdi12 = 0;
+                    rendendo.forEach(c => {
+                        const proj = calcularProjecao12Meses(Number(c.valor || 0), c._cofreInfo || {});
+                        ganhoCdi12 += proj.ganho12;
+                    });
+                    const metasProj12 = metas.reduce((s,m)=> s + (Number(m.valor||0)*12),0);
+                    // Novo resumo separado para cofres rentáveis (CDI) e metas simples
+                    const rentBase = rendendo.reduce((s,c)=> s + Number(c.valor||0),0);
+                    const rentProj12Total = rendendo.reduce((s,c)=> {
+                        const proj = calcularProjecao12Meses(Number(c.valor||0), c._cofreInfo||{});
+                        return s + proj.total12;
+                    },0);
+                    const metasBase = metas.reduce((s,m)=> s + Number(m.valor||0),0);
+                    const metasProj12Total = metasBase * 12; // metas: valor mensal projetado em 12 meses
+                    window._resumoCofres = {
+                        rentBase: rentBase,
+                        rentGanho12: ganhoCdi12,
+                        rentProj12Total: rentProj12Total,
+                        metasBase: metasBase,
+                        metasProj12Total: metasProj12Total
+                    };
+                    atualizarSaldoTransacoesResumo();
+
+                    renderizarListaTransacoes('ganhos-pendentes', ganhosPendentes, 'Nenhum ganho pendente');
+                    renderizarListaTransacoes('ganhos-pagos', ganhosPagos, 'Nenhum ganho recebido');
+                    renderizarListaTransacoes('despesas-pendentes', despesasPendentes, 'Nenhuma despesa pendente');
+                    renderizarListaTransacoes('despesas-pagas', despesasPagas, 'Nenhuma despesa paga');
+                    if (cofresRentaveisEl && cofresSimplesEl) {
+                        renderizarListaTransacoes('cofres-rentaveis', cofresRentaveis, 'Nenhum cofre com rendimento ativo');
+                        renderizarListaTransacoes('cofres-simples', cofresSimples, 'Nenhuma meta cadastrada');
+                    }
+                })
+                .catch(err => {
+                    console.error('Erro ao carregar transações:', err);
+                    ganhosPendentesEl.innerHTML = '<div class="erro">Erro ao carregar ganhos pendentes</div>';
+                    ganhosPagosEl.innerHTML = '<div class="erro">Erro ao carregar ganhos recebidos</div>';
+                    despesasPendentesEl.innerHTML = '<div class="erro">Erro ao carregar despesas pendentes</div>';
+                    despesasPagasEl.innerHTML = '<div class="erro">Erro ao carregar despesas pagas</div>';
+                    if (cofresRentaveisEl) cofresRentaveisEl.innerHTML = '<div class="erro">Erro ao carregar cofres com rendimento</div>';
+                    if (cofresSimplesEl) cofresSimplesEl.innerHTML = '<div class="erro">Erro ao carregar cofres sem rendimento</div>';
+                });
+        }
+
+        function renderizarListaTransacoes(containerId, lista, mensagemVazio) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            container.innerHTML = lista.length
+                ? lista.map(t => criarCartaoKanban(t)).join('')
+                : '<div class="empty-state"><p>' + mensagemVazio + '</p></div>';
+        }
+
+        function criarCartaoKanban(t) {
+            const tipo = (t.tipo || '').toLowerCase();
+            const tipoClass = tipo === 'despesa' ? 'despesa' : (tipo === 'cofre' ? 'cofre' : 'ganho');
+            const sinal = tipo === 'despesa' ? '-' : '+';
+            const classeCard = t.pago && tipo !== 'cofre' ? 'kanban-card pago' : 'kanban-card';
+            const categoria = tipo === 'cofre'
+                ? (t.observacao && t.observacao.trim() ? t.observacao.trim() : 'Cofre / Investimento')
+                : (t.categoria || '—');
+            const metaIcon = tipo === 'cofre' ? '🐷' : '🏷️';
+            // Removido badge azul para simplificar visual
+            const cofreBadge = '';
+            let proj12Html = '';
+            let mediaMesHtml = '';
+            if (tipo === 'cofre') {
+                if (ehCofreComRendimento(t)) {
+                    const proj = calcularProjecao12Meses(Number(t.valor || 0), t._cofreInfo || {});
+                    const ganho12Fmt = 'R$ ' + proj.ganho12.toFixed(2);
+                    proj12Html = '<div style="font-size:0.70em; font-weight:600; color:#64748b;">Projeção 12m (ganho): +' + ganho12Fmt + '</div>';
+                    const mediaMes = proj.ganho12 / 12;
+                    mediaMesHtml = '<div style="font-size:0.65em; font-weight:600; color:#64748b;">/ mês: +R$ ' + mediaMes.toFixed(2) + '</div>';
+                } else {
+                    const projMeta = Number(t.valor || 0) * 12;
+                    proj12Html = '<div style="font-size:0.70em; font-weight:600; color:#64748b;">Projeção 12m (meta): R$ ' + projMeta.toFixed(2) + '</div>';
+                    mediaMesHtml = '<div style="font-size:0.65em; font-weight:600; color:#64748b;">/ mês: R$ ' + Number(t.valor||0).toFixed(2) + '</div>';
+                }
+            }
+            const toggleIcon = t.pago ? '↩️' : '✓';
+            const toggleLabel = t.pago ? 'Desfazer pagamento' : 'Marcar como pago';
+            return '<div class="' + classeCard + '">' +
+                '<div class="kanban-card-info">' +
+                    '<div class="kanban-card-top">' +
+                        '<div class="kanban-card-desc">' + t.descricao + '</div>' +
+                        '<div class="kanban-card-valor ' + tipoClass + '">' +
+                            '<span class="valor-texto">' + sinal + 'R$ ' + t.valor.toFixed(2) + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="kanban-card-meta-categoria">' + metaIcon + ' ' + categoria + '</div>' + cofreBadge +
+                    (proj12Html ? proj12Html : '') +
+                    (mediaMesHtml ? mediaMesHtml : '') +
+                '</div>' +
+                '<div class="kanban-card-acoes">' +
+                    '<button class="kanban-btn kanban-btn-ver" aria-label="Ver detalhes" onclick="verDetalhesTransacao(' + t.id + ')">👁️</button>' +
+                    '<button class="kanban-btn kanban-btn-editar" aria-label="Editar" onclick="abrirEdicao(' + t.id + ')">✏️</button>' +
+                    (tipo === 'cofre' ? '' : '<button class="kanban-btn kanban-btn-marcar" aria-label="' + toggleLabel + '" onclick="marcarPago(' + t.id + ', ' + !t.pago + ')">' + toggleIcon + '</button>') +
+                    '<button class="kanban-btn kanban-btn-deletar" aria-label="Excluir" onclick="deletarTransacao(' + t.id + ')">🗑️</button>' +
+                '</div>' +
+            '</div>';
+        }
+
+        function verDetalhesTransacao(id) {
+            const cache = window.transacoesCache || {};
+            const dados = cache[id];
+            if (dados) {
+                enriquecerTransacaoCofre(dados);
+                preencherModalDetalhes(dados);
+                return;
+            }
+
+            fetch('/api/transacoes/' + id)
+                .then(response => response.json())
+                .then(transacao => {
+                    enriquecerTransacaoCofre(transacao);
+                    window.transacoesCache = window.transacoesCache || {};
+                    window.transacoesCache[id] = transacao;
+                    preencherModalDetalhes(transacao);
+                });
+        }
+
+        function preencherModalDetalhes(t) {
+            const valorFormatado = (t.tipo === 'despesa' ? '-' : '+') + 'R$ ' + Number(t.valor || 0).toFixed(2);
+            document.getElementById('detalhe-descricao').textContent = t.descricao || '—';
+            document.getElementById('detalhe-valor').textContent = valorFormatado;
+            document.getElementById('detalhe-categoria').textContent = t.categoria || '—';
+            document.getElementById('detalhe-vencimento').textContent = t.vencimento ? new Date(t.vencimento).toLocaleDateString('pt-BR') : '—';
+            document.getElementById('detalhe-observacao').textContent = t.observacao ? t.observacao : 'Sem observação.';
+            const blocoProj = document.getElementById('detalhe-cofre-projecao');
+            const textoProj = document.getElementById('detalhe-cofre-texto');
+            if (blocoProj && textoProj) {
+                if (ehCofreComRendimento(t)) {
+                    const proj = calcularProjecaoPicPay(Number(t.valor || 0), t._cofreInfo || {});
+                    blocoProj.style.display = 'block';
+                    textoProj.innerHTML = 'Base R$ ' + Number(t.valor || 0).toFixed(2) + ' → 30 dias: <strong>R$ ' + proj.total.toFixed(2) + '</strong> (+' + proj.ganho.toFixed(2) + ') usando ' + 
+                        (t._cofreInfo.percent_cdi || PICPAY_CDI_DEFAULT) + '% do CDI com liquidez diária (PicPay anuncia 102% do CDI para a conta rendendo todo dia).';
+                } else if ((t.tipo || '').toLowerCase() === 'cofre') {
+                    blocoProj.style.display = 'block';
+                    textoProj.textContent = 'Este cofre está sem rendimento automático. Ative o CDI (PicPay 102% do CDI com liquidez diária) para ver a projeção.';
+                } else {
+                    blocoProj.style.display = 'none';
+                }
+            }
+            document.getElementById('modal-detalhes').classList.add('active');
+        }
+
+        function fecharDetalhes() {
+            document.getElementById('modal-detalhes').classList.remove('active');
+        }
+
+        function marcarPago(id, pago) {
+            const dataHoje = new Date().toISOString().slice(0, 10);
+
+            fetch('/api/transacoes/' + id, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({pago: pago, data_pagamento: pago ? dataHoje : null})
+            })
+            .then(response => response.json())
+            .then(() => {
+                carregarTransacoes();
+                carregarMetricas();
+                carregarDashboard();
+            });
+        }
+
+        function deletarTransacao(id) {
+            if (confirm('Tem certeza que deseja deletar esta transação?')) {
+                fetch('/api/transacoes/' + id, {method: 'DELETE'})
+                .then(() => {
+                    carregarTransacoes();
+                    carregarMetricas();
+                    carregarDashboard();
+                });
+            }
+        }
+
+        // ==================== MODAL EDIÇÃO ====================
+        var transacaoAtualId = null;
+
+        function abrirEdicao(id) {
+            transacaoAtualId = id;
+            fetch('/api/transacoes/' + id)
+                .then(response => response.json())
+                .then(t => {
+                    enriquecerTransacaoCofre(t);
+                    document.getElementById('modal-tipo').value = t.tipo;
+                    document.getElementById('modal-descricao').value = t.descricao;
+                    document.getElementById('modal-valor').value = t.valor;
+                    document.getElementById('modal-categoria').value = t.categoria || '';
+                    document.getElementById('modal-vencimento').value = t.vencimento;
+                    document.getElementById('modal-observacao').value = t.observacao || '';
+                    document.getElementById('modal-pago').checked = t.pago;
+                    if (t.data_pagamento) {
+                        document.getElementById('modal-data_pagamento').value = t.data_pagamento;
+                    }
+                    
+                    toggleDataPagamentoModal();
+                    atualizarCategorias();
+                    document.getElementById('modal-edicao').classList.add('active');
+                    document.getElementById('msg-modal').innerHTML = '';
+                });
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-edicao').classList.remove('active');
+            transacaoAtualId = null;
+        }
+
+        function atualizarCategorias() {
+            const tipo = document.getElementById('modal-tipo').value;
+            const combo = document.getElementById('modal-categoria');
+            const valorAtual = combo.value;
+            
+            combo.innerHTML = '<option value="">-- Sem categoria --</option>';
+
+            if (tipo && categoriasPorTipo[tipo]) {
+                categoriasPorTipo[tipo].forEach(function(cat) {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = cat;
+                    combo.appendChild(option);
+                });
+                combo.value = valorAtual;
+            }
+
+            // Toggle campos específicos no modal para Cofre
+            const vencGrupo = document.getElementById('modal-vencimento-grupo');
+            const cofreOpcoes = document.getElementById('modal-cofre-opcoes');
+            const cofreCdi = document.getElementById('modal-cofre-cdi-grupo');
+            const categoriaGrupo = document.getElementById('modal-categoria').closest('.form-group');
+            const pagoGrupo = document.getElementById('modal-pago').closest('.form-group');
+            const dataPagamentoGrupo = document.getElementById('modal-data-pagamento-grupo');
+            if (tipo === 'cofre') {
+                if (vencGrupo) vencGrupo.style.display = 'none';
+                if (cofreOpcoes) cofreOpcoes.style.display = 'block';
+                if (cofreCdi) cofreCdi.style.display = document.getElementById('modal-cofre-aplicar-cdi').checked ? 'block' : 'none';
+                if (categoriaGrupo) categoriaGrupo.style.display = 'none';
+                if (pagoGrupo) pagoGrupo.style.display = 'none';
+                if (dataPagamentoGrupo) dataPagamentoGrupo.style.display = 'none';
+            } else {
+                if (vencGrupo) vencGrupo.style.display = 'block';
+                if (cofreOpcoes) cofreOpcoes.style.display = 'none';
+                if (cofreCdi) cofreCdi.style.display = 'none';
+                const chk = document.getElementById('modal-cofre-aplicar-cdi');
+                if (chk) chk.checked = false;
+                if (categoriaGrupo) categoriaGrupo.style.display = 'block';
+                if (pagoGrupo) pagoGrupo.style.display = 'block';
+                if (dataPagamentoGrupo) dataPagamentoGrupo.style.display = document.getElementById('modal-pago').checked ? 'block' : 'none';
+            }
+        }
+
+        function toggleCampoCDIModal() {
+            const chk = document.getElementById('modal-cofre-aplicar-cdi');
+            const grupo = document.getElementById('modal-cofre-cdi-grupo');
+            if (grupo) grupo.style.display = chk && chk.checked ? 'block' : 'none';
+        }
+
+        function toggleDataPagamentoModal() {
+            const checkbox = document.getElementById('modal-pago');
+            const grupo = document.getElementById('modal-data-pagamento-grupo');
+            grupo.style.display = checkbox.checked ? 'block' : 'none';
+        }
+
+        function salvarEdicao() {
+            if (!transacaoAtualId) return;
+
+            const tipo = document.getElementById('modal-tipo').value;
+            const descricao = document.getElementById('modal-descricao').value;
+            const valor = document.getElementById('modal-valor').value;
+            const categoria = document.getElementById('modal-categoria').value;
+            const vencimento = document.getElementById('modal-vencimento').value;
+            const pago = document.getElementById('modal-pago').checked;
+            const data_pagamento = document.getElementById('modal-data_pagamento').value;
+            const observacao = document.getElementById('modal-observacao').value;
+            const aplicarCdiModal = document.getElementById('modal-cofre-aplicar-cdi') ? document.getElementById('modal-cofre-aplicar-cdi').checked : false;
+            const percentCdiModalInput = document.getElementById('modal-cofre-cdi-percent');
+            const percentCdiModal = percentCdiModalInput ? parseFloat(percentCdiModalInput.value || PICPAY_CDI_DEFAULT) : PICPAY_CDI_DEFAULT;
+            const cdiAnualModal = aplicarCdiModal ? (percentCdiModal/100)*CDI_BASE_ANUAL : 0;
+            const hojeISO = new Date().toISOString().slice(0,10);
+            const vencimentoParaEnvio = tipo === 'cofre' ? (vencimento || hojeISO) : vencimento;
+
+            const msgDiv = document.getElementById('msg-modal');
+
+            if (!tipo || !descricao || !valor || !vencimentoParaEnvio) {
+                msgDiv.innerHTML = '<div class="erro">Preencha todos os campos obrigatórios!</div>';
+                return;
+            }
+
+            const observacaoPayload = (tipo === 'cofre')
+                ? montarObservacaoCofre({
+                    nota: observacao,
+                    aplicar_cdi: aplicarCdiModal,
+                    percent_cdi: aplicarCdiModal ? percentCdiModal : 0,
+                    cdi_anual: aplicarCdiModal ? cdiAnualModal : 0,
+                    fonte: aplicarCdiModal ? 'picpay' : 'manual'
+                })
+                : observacao;
+
+            fetch('/api/transacoes/' + transacaoAtualId, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    tipo: tipo,
+                    descricao: descricao,
+                    valor: parseFloat(valor),
+                    categoria: (tipo === 'cofre') ? '' : categoria,
+                    vencimento: vencimentoParaEnvio,
+                    pago: (tipo === 'cofre') ? false : pago,
+                    data_pagamento: (tipo === 'cofre') ? null : (pago ? data_pagamento : null),
+                    observacao: observacaoPayload,
+                    aplicar_cdi: undefined,
+                    percent_cdi: undefined,
+                    cdi_anual: undefined
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                msgDiv.innerHTML = '<div class="sucesso">Transação atualizada com sucesso!</div>';
+                setTimeout(function() { 
+                    fecharModal();
+                    carregarTransacoes();
+                    carregarMetricas();
+                    carregarDashboard();
+                }, 1500);
+            })
+            .catch(error => {
+                msgDiv.innerHTML = '<div class="erro">Erro: ' + error.message + '</div>';
+            });
+        }
+
+        function carregarMetricas() {
+            const mes = document.getElementById('mes-filtro').value;
+
+            fetch('/api/metricas/mes?mes=' + mes)
+                .then(response => response.json())
+                .then(dados => {
+                    let html = '<div class="metricas"><div class="metrica"><label>Despesas Totais</label><div class="valor negativo">-R$ ' + dados.despesas.total.toFixed(2) + '</div></div><div class="metrica"><label>Despesas Pagas</label><div class="valor">R$ ' + dados.despesas.pagas.toFixed(2) + '</div></div><div class="metrica"><label>Despesas Pendentes</label><div class="valor negativo">R$ ' + dados.despesas.pendentes.toFixed(2) + '</div></div><div class="metrica"><label>Ganhos Totais</label><div class="valor positivo">R$ ' + dados.ganhos.total.toFixed(2) + '</div></div><div class="metrica"><label>Ganhos Recebidos</label><div class="valor positivo">R$ ' + dados.ganhos.recebidos.toFixed(2) + '</div></div><div class="metrica"><label>Ganhos Pendentes</label><div class="valor positivo">R$ ' + dados.ganhos.pendentes.toFixed(2) + '</div></div><div class="metrica"><label>Fluxo de Caixa</label><div class="valor ' + (dados.fluxo_caixa >= 0 ? 'positivo' : 'negativo') + '">R$ ' + dados.fluxo_caixa.toFixed(2) + '</div></div><div class="metrica"><label>Saldo (Ganhos - Despesas)</label><div class="valor ' + (dados.saldo >= 0 ? 'positivo' : 'negativo') + '">R$ ' + dados.saldo.toFixed(2) + '</div></div></div>';
+
+                    if (Object.keys(dados.despesas.por_categoria).length > 0) {
+                        html += '<h4 style="margin-top: 20px; color: #7C3AED;">Despesas por Categoria</h4><div class="metricas">';
+                        Object.entries(dados.despesas.por_categoria).forEach(function([cat, valor]) {
+                            html += '<div class="metrica" style="border-left-color: #d9534f;"><label>' + cat + '</label><div class="valor negativo">-R$ ' + valor.toFixed(2) + '</div></div>';
+                        });
+                        html += '</div>';
+                    }
+
+                    if (Object.keys(dados.ganhos.por_categoria).length > 0) {
+                        html += '<h4 style="margin-top: 20px; color: #7C3AED;">Ganhos por Categoria</h4><div class="metricas">';
+                        Object.entries(dados.ganhos.por_categoria).forEach(function([cat, valor]) {
+                            html += '<div class="metrica" style="border-left-color: #00a854;"><label>' + cat + '</label><div class="valor positivo">R$ ' + valor.toFixed(2) + '</div></div>';
+                        });
+                        html += '</div>';
+                    }
+
+                    document.getElementById('metricas-content').innerHTML = html;
+                });
+        }
+
+        function exportarPDF() {
+            const mes = document.getElementById('mes-filtro').value;
+            if (!mes) {
+                alert('Selecione um mês para exportar!');
+                return;
+            }
+            window.location.href = '/api/exportar/pdf?mes=' + mes;
+        }
+
+        // ==================== LISTA DE COMPRAS ====================
+        function criarNovaLista() {
+            const titulo = document.getElementById('nova-lista-titulo').value;
+
+            if (!titulo.trim()) {
+                alert('Digite um título para a lista!');
+                return;
+            }
+
+            fetch('/api/listas', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({titulo: titulo})})
+            .then(response => response.json())
+            .then(() => {
+                document.getElementById('nova-lista-titulo').value = '';
+                carregarListas();
+            });
+        }
+
+        // ==================== CATEGORIAS ====================
+        function carregarCategorias() {
+            fetch('/api/categorias')
+                .then(response => response.json())
+                .then(categorias => {
+                    const despesas = categorias.filter(c => c.tipo === 'despesa');
+                    const ganhos = categorias.filter(c => c.tipo === 'ganho');
+
+                    renderizarCategorias('categorias-despesa', despesas);
+                    renderizarCategorias('categorias-ganho', ganhos);
+                });
+        }
+
+        function renderizarCategorias(containerId, categorias) {
+            const container = document.getElementById(containerId);
+            
+            if (categorias.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; padding: 30px;"><p>Nenhuma categoria cadastrada</p></div>';
+                return;
+            }
+
+            let html = '';
+            categorias.forEach(function(cat) {
+                html += '<div class="categoria-card">' +
+                    '<div class="categoria-info">' +
+                        '<div class="categoria-icone">' + cat.icone + '</div>' +
+                        '<div class="categoria-detalhes">' +
+                            '<span class="categoria-nome">' + cat.nome + '</span>' +
+                        '</div>' +
+                        '<div class="categoria-cor" style="background-color: ' + cat.cor + ';"></div>' +
+                    '</div>' +
+                    '<div class="categoria-acoes">' +
+                        '<button class="cat-btn cat-btn-editar" onclick="editarCategoria(' + cat.id + ')">✏️</button>' +
+                        '<button class="cat-btn cat-btn-deletar" onclick="deletarCategoria(' + cat.id + ')">🗑️</button>' +
+                    '</div>' +
+                '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function adicionarCategoria() {
+            const tipo = document.getElementById('cat-tipo').value;
+            const nome = document.getElementById('cat-nome').value;
+            const icone = document.getElementById('cat-icone').value;
+            const cor = document.getElementById('cat-cor').value;
+            const msgDiv = document.getElementById('msg-categoria');
+
+            if (!nome.trim()) {
+                msgDiv.innerHTML = '<div class="erro">Digite o nome da categoria!</div>';
+                return;
+            }
+
+            fetch('/api/categorias', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    tipo: tipo,
+                    nome: nome,
+                    icone: icone || '📌',
+                    cor: cor
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.erro) {
+                    msgDiv.innerHTML = '<div class="erro">' + data.erro + '</div>';
+                    return;
+                }
+
+                msgDiv.innerHTML = '<div class="sucesso">Categoria adicionada com sucesso!</div>';
+                document.getElementById('cat-nome').value = '';
+                document.getElementById('cat-icone').value = '📌';
+                document.getElementById('cat-cor').value = '#001f3f';
+                document.getElementById('cat-cor-texto').value = '#001f3f';
+
+                carregarCategorias();
+                atualizarCombosCategorias();
+
+                setTimeout(() => { msgDiv.innerHTML = ''; }, 3000);
+            })
+            .catch(error => {
+                msgDiv.innerHTML = '<div class="erro">Erro: ' + error.message + '</div>';
+            });
+        }
+
+        function editarCategoria(id) {
+            const novoNome = prompt('Digite o novo nome da categoria:');
+            if (!novoNome) return;
+
+            fetch('/api/categorias/' + id, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ nome: novoNome })
+            })
+            .then(response => response.json())
+            .then(() => {
+                carregarCategorias();
+                atualizarCombosCategorias();
+            })
+            .catch(error => console.error('Erro:', error));
+        }
+
+        function deletarCategoria(id) {
+            if (!confirm('Tem certeza que deseja deletar esta categoria?')) return;
+
+            fetch('/api/categorias/' + id, {
+                method: 'DELETE'
+            })
+            .then(() => {
+                carregarCategorias();
+                atualizarCombosCategorias();
+            })
+            .catch(error => console.error('Erro:', error));
+        }
+
+        function atualizarCombosCategorias() {
+            fetch('/api/categorias')
+                .then(response => response.json())
+                .then(categorias => {
+                    const despesas = categorias.filter(c => c.tipo === 'despesa');
+                    const ganhos = categorias.filter(c => c.tipo === 'ganho');
+
+                    window.categoriasPorTipo = {
+                        despesa: despesas.map(c => c.nome),
+                        ganho: ganhos.map(c => c.nome)
+                    };
+
+                    atualizarCategoriasCombo();
+                    if (document.getElementById('modal-tipo').value) {
+                        atualizarCategorias();
+                    }
+                });
+        }
+
+        // Atualizar cor enquanto digita
+        document.getElementById('cat-cor')?.addEventListener('change', function() {
+            document.getElementById('cat-cor-texto').value = this.value;
+        });
+
+        function carregarListas() {
+            fetch('/api/listas')
+                .then(response => response.json())
+                .then(listas => {
+                    const container = document.getElementById('listas-container');
+
+                    if (listas.length === 0) {
+                        container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><p>Nenhuma lista criada ainda</p></div>';
+                        return;
+                    }
+
+                    let html = '';
+                    listas.forEach(function(lista) {
+                        const itemsConcluidos = lista.itens.filter(function(i) { return i.concluido; }).length;
+                        const totalItens = lista.itens.length;
+
+                        html += '<div class="lista-card"><div class="lista-titulo">' + lista.titulo + '</div><div style="margin-bottom: 10px; font-size: 0.9em; color: #999;">' + itemsConcluidos + '/' + totalItens + ' itens</div><ul class="lista-itens" id="itens-' + lista.id + '">';
+
+                        lista.itens.forEach(function(item, index) {
+                            html += '<li class="lista-item ' + (item.concluido ? 'concluido' : '') + '"><input type="checkbox" ' + (item.concluido ? 'checked' : '') + ' onchange="toggleItemLista(' + lista.id + ', ' + index + ', this.checked)"><label>' + item.texto + '</label></li>';
+                        });
+
+                        html += '</ul><div class="item-input-group"><input type="text" placeholder="Novo item..." id="novo-item-' + lista.id + '"><button onclick="adicionarItemLista(' + lista.id + ')">+</button></div><div class="lista-acoes"><button class="btn-pequeno btn-secondary" onclick="limparConcluidosLista(' + lista.id + ')">Limpar Concluídos</button><button class="btn-pequeno btn-deletar" onclick="deletarLista(' + lista.id + ')">Deletar Lista</button></div></div>';
+                    });
+
+                    container.innerHTML = html;
+                });
+        }
+
+        function adicionarItemLista(listaId) {
+            const input = document.getElementById('novo-item-' + listaId);
+            const texto = input.value.trim();
+
+            if (!texto) return;
+
+            fetch('/api/listas/' + listaId)
+                .then(response => response.json())
+                .then(lista => {
+                    lista.itens.push({texto: texto, concluido: false});
+
+                    return fetch('/api/listas/' + listaId, {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({itens: lista.itens})});
+                })
+                .then(() => {
+                    input.value = '';
+                    carregarListas();
+                });
+        }
+
+        function toggleItemLista(listaId, index, concluido) {
+            fetch('/api/listas/' + listaId)
+                .then(response => response.json())
+                .then(lista => {
+                    lista.itens[index].concluido = concluido;
+
+                    return fetch('/api/listas/' + listaId, {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({itens: lista.itens})});
+                })
+                .then(() => carregarListas());
+        }
+
+        function limparConcluidosLista(listaId) {
+            fetch('/api/listas/' + listaId)
+                .then(response => response.json())
+                .then(lista => {
+                    lista.itens = lista.itens.filter(function(i) { return !i.concluido; });
+
+                    return fetch('/api/listas/' + listaId, {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({itens: lista.itens})});
+                })
+                .then(() => carregarListas());
+        }
+
+        function deletarLista(listaId) {
+            if (confirm('Tem certeza que deseja deletar esta lista?')) {
+                fetch('/api/listas/' + listaId, {method: 'DELETE'})
+                .then(() => carregarListas());
+            }
+        }
+    </script>
+</body>
+</html>
