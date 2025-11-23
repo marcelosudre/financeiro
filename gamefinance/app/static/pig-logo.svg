@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none" aria-label="Logo Meu Cofrinho - Porquinho Sugestivo">
+  <!-- Minimal, professional piggy bank logo, back view, cheeky/suggestive -->
+  <g stroke="#623B35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Body (back view, cofrinho) -->
+    <ellipse cx="128" cy="140" rx="70" ry="54" fill="#FFCABD" />
+    <!-- Slot -->
+    <rect x="104" y="110" width="48" height="8" rx="4" fill="#623B35" />
+    <!-- Legs -->
+    <ellipse cx="90" cy="200" rx="10" ry="16" fill="#FFCABD" />
+    <ellipse cx="166" cy="200" rx="10" ry="16" fill="#FFCABD" />
+    <!-- Ears (back) -->
+    <ellipse cx="70" cy="90" rx="14" ry="20" fill="#FFCABD" />
+    <ellipse cx="186" cy="90" rx="14" ry="20" fill="#FFCABD" />
+    <!-- Cheeky smile (above slot, as if the pig is glancing back) -->
+    <path d="M128 120c12 8 24 8 36 0" stroke="#FFB1A3" stroke-width="3" />
+    <!-- Blush (on the 'cofrinho') -->
+    <ellipse cx="128" cy="170" rx="18" ry="8" fill="#FFB1A3" opacity="0.7" />
+    <!-- Tail (curly, right side) -->
+    <path d="M198 160c10 0 14 8 8 14-4 4-10 0-8-6" />
+    <!-- Shadow -->
+    <ellipse cx="128" cy="220" rx="60" ry="12" fill="#E9EEF3" />
+  </g>
+</svg>

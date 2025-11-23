@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# Distribution
+build/
+dist/
+*.egg-info/
+
+# Database
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Backups and archives
+*.zip
+backup/
+app.zip
+
+# OS files
+Thumbs.db
+
+# Node/npm
+node_modules/
+
+# Others
+pip-wheel-metadata/
