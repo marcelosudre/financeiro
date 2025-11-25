@@ -2239,27 +2239,37 @@
             const saldoMes = window._saldoMes;
             if (cofresAtivo && resumo) {
                                 saldoElemento.className = 'kanban-totalizador saldo positivo';
+                saldoElemento.style.display = 'grid';
+                saldoElemento.style.gridTemplateColumns = 'repeat(auto-fit, minmax(220px, 1fr))';
+                saldoElemento.style.gap = '12px';
+                saldoElemento.style.alignItems = 'stretch';
+                saldoElemento.style.background = 'transparent';
+                saldoElemento.style.boxShadow = 'none';
+                saldoElemento.style.padding = '0';
                                 const rentBase = (resumo.rentBase||0);
                                 const rentProj12Total = (resumo.rentProj12Total||0);
                                 const rentGanho12 = (resumo.rentGanho12||0);
                                 const metasBase = (resumo.metasBase||0);
                                 const metasProj12Total = (resumo.metasProj12Total||0);
                                 const rentMensalGanho = rentGanho12/12; // ganho projetado médio por mês
-                saldoElemento.innerHTML = '<div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">'
-                  + '<div style="flex:1 1 180px; min-width:160px; background:#001f3f; color:#fff; padding:10px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.25);">'
-                      + '<div style="font-weight:700;">🐷 CDI</div>'
-                      + '<div style="font-size:1.1em; font-weight:700; margin-top:4px;">R$ ' + rentBase.toFixed(2) + '</div>'
-                      + '<div style="font-size:0.75em; margin-top:6px; line-height:1.4;">Ganho 12m: +R$ ' + rentGanho12.toFixed(2) + '<br>Médio mês: +R$ ' + rentMensalGanho.toFixed(2) + '<br>Total 12m: R$ ' + rentProj12Total.toFixed(2) + '</div>'
+                saldoElemento.innerHTML = ''
+                  + '<div style="background:#001f3f; color:#fff; padding:12px; border-radius:12px; box-shadow:0 3px 10px rgba(0,0,0,0.3);">'
+                      + '<div style="font-weight:700; font-size:0.95em;">🐷 CDI</div>'
+                      + '<div style="font-size:1.3em; font-weight:700; margin-top:4px;">R$ ' + rentBase.toFixed(2) + '</div>'
+                      + '<div style="font-size:0.78em; margin-top:8px; line-height:1.45;">Ganho 12m: +R$ ' + rentGanho12.toFixed(2)
+                          + '<br>Médio mês: +R$ ' + rentMensalGanho.toFixed(2)
+                          + '<br>Total 12m: R$ ' + rentProj12Total.toFixed(2) + '</div>'
                   + '</div>'
-                  + '<div style="flex:1 1 180px; min-width:160px; background:#032544; color:#fff; padding:10px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.25);">'
-                      + '<div style="font-weight:700;">🎯 Metas</div>'
-                      + '<div style="font-size:1.1em; font-weight:700; margin-top:4px;">R$ ' + metasBase.toFixed(2) + '</div>'
-                      + '<div style="font-size:0.75em; margin-top:6px; line-height:1.4;">Projeção 12m: R$ ' + metasProj12Total.toFixed(2) + '<br>Médio mês aporte: R$ ' + metasBase.toFixed(2) + '</div>'
-                  + '</div>'
-                + '</div>';
+                  + '<div style="background:#032544; color:#fff; padding:12px; border-radius:12px; box-shadow:0 3px 10px rgba(0,0,0,0.3);">'
+                      + '<div style="font-weight:700; font-size:0.95em;">🎯 Metas</div>'
+                      + '<div style="font-size:1.3em; font-weight:700; margin-top:4px;">R$ ' + metasBase.toFixed(2) + '</div>'
+                      + '<div style="font-size:0.78em; margin-top:8px; line-height:1.45;">Projeção 12m: R$ ' + metasProj12Total.toFixed(2)
+                          + '<br>Médio mês aporte: R$ ' + metasBase.toFixed(2) + '</div>'
+                  + '</div>';
             } else if (typeof saldoMes === 'number') {
                 const saldoClass = saldoMes >= 0 ? 'positivo' : 'negativo';
                 saldoElemento.className = 'kanban-totalizador saldo ' + saldoClass;
+                saldoElemento.removeAttribute('style');
                 saldoElemento.innerHTML = '⚖️ Saldo do mês<br><strong>' + (saldoMes >= 0 ? '+' : '-') + 'R$ ' + Math.abs(saldoMes).toFixed(2) + '</strong>';
             }
         }
